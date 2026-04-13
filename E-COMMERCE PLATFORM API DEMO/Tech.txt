@@ -1,0 +1,24 @@
+1. Ngôn ngữ & Nền tảng (Core)
+   * .NET 10
+ 
+  2. Kiến trúc & Pattern (Architecture)
+   * Clean Architecture (Onion Architecture): Cách chia 4 lớp: Domain -> Application -> Infrastructure -> WebAPI.
+   * Minimal APIs: Đây là cách dự án định nghĩa Endpoint (xem trong Affiliate.Api/Endpoints/). Nó khác gì so với Controller truyền thống?
+   * MediatR & CQRS: Tìm hiểu cách tách biệt lệnh (Command) và truy vấn (Query). Cách dùng Handlers để xử lý logic thay vì viết hết vào Service.
+   * Repository & Unit of Work: Cách quản lý truy vấn dữ liệu tập trung.
+ 
+  3. Quản lý Dữ liệu (Database & ORM)
+   * Entity Framework Core (EF Core): 
+       * Code First: Cách tạo Entity và ánh xạ vào Database.
+       * Migrations: Cách dùng lệnh dotnet ef migrations để quản lý sự thay đổi của DB.
+       * Fluent API: Cách cấu hình bảng trong thư mục Configurations/.
+ 
+  4. Giao tiếp giữa các Service (Communication)
+   * RESTful API: Các chuẩn thiết kế API, HTTP Methods (GET, POST, PUT, DELETE), Status Codes.
+   * gRPC: Một công nghệ rất quan trọng trong Microservices (xem thư mục Affiliate.Grpc và Protobuf/).
+       * Tìm hiểu file .proto là gì?
+       * Cách gRPC giúp các Service gọi nhau nhanh hơn REST.
+ 
+  5. Thư viện bổ trợ (Libraries)
+   * Mapster/AutoMapper: Cách chuyển đổi (mapping) từ Entity sang DTO và ngược lại (xem MapProfiles).
+   * FluentValidation: Cách kiểm tra dữ liệu đầu vào (Validation) một cách chuyên nghiệp.
