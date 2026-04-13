@@ -43,16 +43,21 @@ namespace Application.Features.Auth.Commands.Login
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                     new Claim(JwtRegisteredClaimNames.Email, user.email.ToString()),
+                    new Claim(ClaimTypes.Name, user.username),
                     new Claim(ClaimTypes.Role, user.role.RoleName.ToString())
                 };
+
+                var jwtKey = _configuration["Jwt:Key"]!;
+                var jwtIssuer = _configuration["Jwt:Issuer"]!;
+                var jwtAudience = _configuration["Jwt:Audience"]!;
                 //Preparing signature key
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));//SymmetricSecurityKey(Encoding.UTF8.GetBytes used to sign
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));//SymmetricSecurityKey(Encoding.UTF8.GetBytes used to sign
                 //encrypt signature key by Sha256
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);//SigningCredentials used to encrypt
                 //Package token together
                 var token = new JwtSecurityToken(
-                    issuer: "MyEcommerceApp",
-                    audience: "MyEcommerceApp",
+                    issuer: jwtIssuer,
+                    audience: jwtAudience,
                     claims: claims,
                     expires: DateTime.UtcNow.AddMinutes(60),
                     signingCredentials: creds
