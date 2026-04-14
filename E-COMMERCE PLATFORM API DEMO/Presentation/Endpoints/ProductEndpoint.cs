@@ -66,11 +66,55 @@ namespace WebAPI.Endpoints
                     return Results.ValidationProblem(validationResult.ToDictionary());
                 }
 
-                var result = mediator.Send(command);
+                var result = await mediator.Send(command);
 
-                return Results.Ok(new { Message = "Đăng ký thành công!", product = result });
-            });
-                
+                return Results.Ok(new { Message = "Tạo sản phẩm thành công!", productId = result });
+            }).RequireAuthorization("AdminOnly");
+
+            group.MapPut("/{productId:guid}", async (
+                Guid productId,
+                UpdateProductCommand command,
+                IMediator mediator,
+                IValidator<UpdateProductCommand> validator) =>
+            {
+                var updateCommand = command with { productId = productId };
+
+                var validationResult = await validator.ValidateAsync(updateCommand);
+                if (!validationResult.IsValid)
+                {
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+                }
+
+                var result = await mediator.Send(updateCommand);
+
+                if (!result.IsSuccess)
+                {
+                    return Results.BadRequest(new { Message = result.ErrorMessage });
+                }
+                return Results.Ok(new { Message = "Cập nhật thành công" });
+            }).RequireAuthorization("AdminOnly");
+
+            group.MapDelete("/{productId:guid}", async (
+                Guid productId,
+                IMediator mediator,
+                IValidator<DeleteProductCommand> validator) =>
+            {
+                var command = new DeleteProductCommand(productId);
+
+                var validationResult = await validator.ValidateAsync(command);
+                if (!validationResult.IsValid)
+                {
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+                }
+
+                var result = await mediator.Send(command);
+                if (!result.IsSuccess)
+                {
+                    return Results.NotFound(new { Message = result.ErrorMessage });
+                }
+
+                return Results.Ok(new { Message = "Xóa sản phẩm thành công!" });
+            }).RequireAuthorization("AdminOnly");
         }
     }
 }
