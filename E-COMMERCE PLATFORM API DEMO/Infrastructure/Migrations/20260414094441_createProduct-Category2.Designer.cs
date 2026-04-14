@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20260413104358_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260414094441_createProduct-Category2")]
+    partial class createProductCategory2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,69 @@ namespace Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain.Entities.Roles", b =>
+            modelBuilder.Entity("Domain.Entities.Category", b =>
+                {
+                    b.Property<int>("categoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("categoryId"));
+
+                    b.Property<string>("categoryName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("categoryId");
+
+                    b.HasIndex("categoryName")
+                        .IsUnique();
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Product", b =>
+                {
+                    b.Property<Guid>("productId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("categoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<decimal>("price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("productName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("stockQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("productId");
+
+                    b.HasIndex("categoryId");
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Role", b =>
                 {
                     b.Property<int>("roleId")
                         .ValueGeneratedOnAdd()
@@ -52,9 +114,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("RolesroleId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("createAt")
                         .HasColumnType("datetime2");
 
@@ -77,8 +136,6 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RolesroleId");
-
                     b.HasIndex("email")
                         .IsUnique();
 
@@ -87,13 +144,20 @@ namespace Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Product", b =>
+                {
+                    b.HasOne("Domain.Entities.Category", "category")
+                        .WithMany("Products")
+                        .HasForeignKey("categoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("category");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
-                    b.HasOne("Domain.Entities.Roles", null)
-                        .WithMany("Users")
-                        .HasForeignKey("RolesroleId");
-
-                    b.HasOne("Domain.Entities.Roles", "role")
+                    b.HasOne("Domain.Entities.Role", "role")
                         .WithMany()
                         .HasForeignKey("roleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -102,9 +166,9 @@ namespace Infrastructure.Migrations
                     b.Navigation("role");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Roles", b =>
+            modelBuilder.Entity("Domain.Entities.Category", b =>
                 {
-                    b.Navigation("Users");
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

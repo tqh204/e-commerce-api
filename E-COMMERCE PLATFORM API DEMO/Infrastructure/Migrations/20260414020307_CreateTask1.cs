@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class CreateTask1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -33,17 +33,11 @@ namespace Infrastructure.Migrations
                     email = table.Column<string>(type: "nvarchar(130)", maxLength: 130, nullable: false),
                     passwordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     roleId = table.Column<int>(type: "int", nullable: false),
-                    createAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RolesroleId = table.Column<int>(type: "int", nullable: true)
+                    createAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Users_Roles_RolesroleId",
-                        column: x => x.RolesroleId,
-                        principalTable: "Roles",
-                        principalColumn: "roleId");
                     table.ForeignKey(
                         name: "FK_Users_Roles_roleId",
                         column: x => x.roleId,
@@ -68,11 +62,6 @@ namespace Infrastructure.Migrations
                 name: "IX_Users_roleId",
                 table: "Users",
                 column: "roleId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_RolesroleId",
-                table: "Users",
-                column: "RolesroleId");
         }
 
         /// <inheritdoc />

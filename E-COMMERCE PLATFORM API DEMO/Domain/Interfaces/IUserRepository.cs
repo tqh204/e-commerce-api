@@ -10,6 +10,6 @@ namespace Domain.Interfaces
         public Task AddAsync(User user);
         public Task<bool> IsEmailUniqueAsync(string email);
         Task<User?> GetByEmailAsync(string email);
-        Task<Roles?> GetRoleByNameAsync(string rolename);
+        Task<Role?> GetRoleByNameAsync(string rolename);
     }
 }

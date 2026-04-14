@@ -11,7 +11,7 @@ namespace Domain.Entities
         public string email { get; set; }
         public string passwordHash { get; set; }
         public int roleId { get; set; }//Foreign key
-        public Roles role { get; set; }
+        public Role role { get; set; }
         public DateTime createAt { get; set; } = DateTime.UtcNow;
     }
 }

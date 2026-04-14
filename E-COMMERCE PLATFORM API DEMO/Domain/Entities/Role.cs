@@ -4,11 +4,11 @@ using System.Text;
 
 namespace Domain.Entities
 {
-    public class Roles
+    public class Role
     {
         public int roleId { get; set; }
         public string RoleName { get; set; }
 
-        public ICollection<User> Users { get; set; } = new List<User>();
+        //public ICollection<User> Users { get; set; } = new List<User>();
     }
 }
