@@ -1,6 +1,6 @@
 using Application.Features.Auth.Commands.Login;
 using Application.Features.Auth.Commands.Register;
-using Domain.Interfaces;
+using Application.Interfaces;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
@@ -25,6 +25,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
 builder.Services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);// Đăng ký FluentValidation
 
@@ -74,4 +76,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapAuthEndpoints();
 app.MapProductEndpoints();
+app.MapCartEndpoints();
 app.Run();

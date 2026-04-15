@@ -4,7 +4,7 @@ using System.Text;
 using BCrypt;
 using MediatR;
 using Domain.Entities;
-using Domain.Interfaces;
+using Application.Interfaces;
 namespace Application.Features.Auth.Commands.Register
 {
     public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, Guid>

@@ -1,9 +1,11 @@
-﻿using Domain.Entities;
+using Application.Interfaces;
+using Domain.Entities;
+using MediatR;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using MediatR;
-using Domain.Interfaces;
+
 namespace Application.Features.Product.Queries.GetProductQuery
 {
     public class GetProductsQueryHandler : IRequestHandler<GetProductQuery, PagedResult<ProductDTO>>

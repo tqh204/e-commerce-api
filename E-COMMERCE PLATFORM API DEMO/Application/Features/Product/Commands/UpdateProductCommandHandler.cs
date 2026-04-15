@@ -1,5 +1,5 @@
 ﻿using Domain.Entities;
-using Domain.Interfaces;
+using Application.Interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;

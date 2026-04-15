@@ -6,9 +6,9 @@ namespace Domain.Entities
 {
     public class Product
     {
-        public Guid productId { get; set; }
-        public string productName { get; set; }
-        public string? description { get; set; }
+        public Guid productId { get; set; } //idRadientProduct
+        public string productName { get; set; }//color
+        public string? description { get; set; }//size product
         public decimal price { get; set; }
         public int stockQuantity { get; set; }
         public int categoryId { get; set; }

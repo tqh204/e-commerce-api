@@ -1,6 +1,6 @@
 ﻿using Application.Features.Product.Queries.GetProductQuery;
 using Domain.Entities;
-using Domain.Interfaces;
+using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System;

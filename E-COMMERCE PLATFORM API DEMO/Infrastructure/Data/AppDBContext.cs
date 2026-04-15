@@ -14,6 +14,8 @@ namespace Infrastructure.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -51,6 +53,53 @@ namespace Infrastructure.Data
                 entity.HasKey(u => u.categoryId);
                 entity.Property(u => u.categoryName).IsRequired().HasMaxLength(200);
                 entity.HasIndex(u => u.categoryName).IsUnique();
+            });
+
+            modelBuilder.Entity<Cart>(entity =>
+            {
+                entity.HasKey(c => c.cartId);
+
+                entity.Property(c => c.createdAt)
+                      .IsRequired();
+
+                entity.Property(c => c.updatedAt)
+                      .IsRequired(false);
+
+                entity.HasIndex(c => c.userId).IsUnique();
+
+                entity.HasOne(c => c.user)
+                      .WithOne(u => u.cart)
+                      .HasForeignKey<Cart>(c => c.userId);
+
+                entity.HasMany(c => c.items)
+                      .WithOne(i => i.cart)
+                      .HasForeignKey(i => i.cartId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<CartItem>(entity =>
+            {
+                entity.HasKey(i => i.cartItemId);
+
+                entity.Property(i => i.quantity)
+                      .IsRequired();
+
+                entity.Property(i => i.unitPrice)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(i => i.createdAt)
+                      .IsRequired();
+
+                entity.Property(i => i.updatedAt)
+                      .IsRequired(false);
+
+                entity.HasIndex(i => new { i.cartId, i.productId })
+                      .IsUnique();
+
+                entity.HasOne(i => i.product)
+                      .WithMany()
+                      .HasForeignKey(i => i.productId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
         }

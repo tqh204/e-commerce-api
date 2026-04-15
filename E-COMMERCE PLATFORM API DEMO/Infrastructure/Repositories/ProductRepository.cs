@@ -1,10 +1,11 @@
 ﻿using Domain.Entities;
-using Domain.Interfaces;
+using Application.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.EntityFrameworkCore.Update.Internal;
 
 namespace Infrastructure.Repositories
 {
@@ -17,7 +18,7 @@ namespace Infrastructure.Repositories
 
         public async Task<(IReadOnlyList<Product> Items, int TotalCount)> GetPagedAsync(int page, int size, int? categoryId, decimal? minPrice, decimal? maxPrice)
         {
-            var query = _context.Products.Include(u => u.category).Where(u => !u.isDeleted).AsQueryable();//Starting at Product table and taking categories atrributes associated and used where to get product which is active. Finally AsQueryable to use connect to another query
+            var query = _context.Products.Include(u => u.category).Where(u => !u.isDeleted).AsQueryable();//Starting at Product table and taking categories atrributes associated and used where to get product which is active. Finally AsQueryable to use connect to another syntax
             if (categoryId.HasValue)
             {
                 query = query.Where(u => u.categoryId == categoryId.Value);//Filter by CategoryId if client transmitted
@@ -49,5 +50,7 @@ namespace Infrastructure.Repositories
         {
             _context.Products.Update(product);
         }
+
+        
     }
 }

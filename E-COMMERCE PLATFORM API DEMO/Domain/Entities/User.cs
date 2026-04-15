@@ -12,6 +12,7 @@ namespace Domain.Entities
         public string passwordHash { get; set; }
         public int roleId { get; set; }//Foreign key
         public Role role { get; set; }
+        public Cart? cart { get; set; }
         public DateTime createAt { get; set; } = DateTime.UtcNow;
     }
 }

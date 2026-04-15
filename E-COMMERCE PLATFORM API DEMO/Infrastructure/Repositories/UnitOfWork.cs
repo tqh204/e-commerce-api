@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Domain.Entities;
-using Domain.Interfaces;
+using Application.Interfaces;
 using Infrastructure.Data;
 namespace Infrastructure.Repositories
 {

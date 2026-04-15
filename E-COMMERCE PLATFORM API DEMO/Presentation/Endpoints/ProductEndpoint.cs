@@ -11,7 +11,7 @@ namespace WebAPI.Endpoints
 {
     public static class ProductEndpoint
     {
-        public static async Task MapProductEndpoints(this IEndpointRouteBuilder app)
+        public static void MapProductEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("/api/v1/products");
             group.MapGet("/", async (
