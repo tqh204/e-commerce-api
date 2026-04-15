@@ -35,6 +35,8 @@ namespace Application.Features.Cart.Commands
 
             var cart = await _cartRepository.GetByUserIdAsync(request.userId);
 
+            var isNewCart = false;
+
             if(cart == null)
             {
                  cart = new Domain.Entities.Cart
@@ -42,8 +44,9 @@ namespace Application.Features.Cart.Commands
                     cartId = Guid.NewGuid(),
                     userId = request.userId,
                     createdAt = DateTime.UtcNow,
-                    updatedAt = null
-                };
+                    updatedAt = DateTime.UtcNow
+                 };
+                isNewCart = true;
                 await _cartRepository.AddCartAsync(cart);
             }
 
@@ -76,8 +79,10 @@ namespace Application.Features.Cart.Commands
                 await _cartRepository.AddCartItemAsync(carItem);
             }
             cart.updatedAt = DateTime.UtcNow;
-            _cartRepository.UpdateCart(cart);
-
+            if (!isNewCart)
+            {
+                _cartRepository.UpdateCart(cart);
+            }
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result<bool>.Success(true);
         }

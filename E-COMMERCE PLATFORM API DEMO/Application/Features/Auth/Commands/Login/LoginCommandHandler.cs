@@ -41,8 +41,8 @@ namespace Application.Features.Auth.Commands.Login
                 //Preparing parts to create Token
                 var claims = new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, user.email.ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Email, user.email.ToString()),
                     new Claim(ClaimTypes.Name, user.username),
                     new Claim(ClaimTypes.Role, user.role.RoleName.ToString())
                 };
