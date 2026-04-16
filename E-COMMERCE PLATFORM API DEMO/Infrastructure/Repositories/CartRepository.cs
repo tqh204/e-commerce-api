@@ -40,5 +40,10 @@ namespace Infrastructure.Repositories
         {
             _context.CartItems.Update(cartItem);
         }
+
+        public void RemoveCart(Cart cart)
+        {
+            _context.Carts.Remove(cart);
+        }
     }
 }

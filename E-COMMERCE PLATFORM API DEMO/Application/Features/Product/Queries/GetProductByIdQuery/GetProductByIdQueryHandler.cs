@@ -16,9 +16,9 @@ namespace Application.Features.Product.Queries.GetProductByIdQuery
         public GetProductByIdQueryHandler(IProductRepository productRepository) => _productRepository = productRepository;
         public async Task<Result<ProductDTO>> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
-            var product = await _productRepository.GetProductByIdAsync(request.productId);
+            var product = await _productRepository.GetProductByIdAsync(request.productId);//Find product by productId   
 
-            if (product == null)
+            if (product == null)    
             {
                 return Result<ProductDTO>.Failure("Không tìm thấy sản phẩm");
             }

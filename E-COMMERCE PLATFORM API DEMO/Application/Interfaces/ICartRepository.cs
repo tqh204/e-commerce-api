@@ -17,5 +17,6 @@ namespace Application.Interfaces
         void UpdateCart(Cart cart);
         void UpdateCartItem(CartItem cartItem);
         void RemoveCartItem(CartItem cartItem);
+        void RemoveCart(Cart cart);
     }
 }

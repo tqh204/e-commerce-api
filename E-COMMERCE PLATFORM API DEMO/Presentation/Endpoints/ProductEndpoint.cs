@@ -23,7 +23,7 @@ namespace WebAPI.Endpoints
                 decimal? minPrice = null,
                 decimal? maxPrice = null) =>
                 {
-                    var query = new GetProductQuery(page, size, categoryId, minPrice, maxPrice);
+                    var query = new GetProductQuery(page, size, categoryId, minPrice, maxPrice);//create a query string contain parameters with page = page present, size = amount product each page, filter by categoryId, filter with minPrice or maxPrice or range between min and max
 
                     var validationResult = await validator.ValidateAsync(query);
                     if (!validationResult.IsValid)

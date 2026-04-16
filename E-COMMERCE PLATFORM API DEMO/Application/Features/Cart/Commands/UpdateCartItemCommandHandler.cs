@@ -18,33 +18,33 @@ namespace Application.Features.Cart.Commands
         }
         public async Task<Result<bool>> Handle(UpdateCartItemCommand request, CancellationToken cancellationToken)
         {
-            var cartItem = await _cartRepository.GetCartItemByIdAsync(request.cartItemId);
-            if(cartItem == null)
+            var cartItem = await _cartRepository.GetCartItemByIdAsync(request.cartItemId);//Searching cartItem by cartItemId
+            if(cartItem == null)//Not found
             {
                 return Result<bool>.Failure("Không tìm thấy sản phẩm trong dỏ hàng nho~~");
             }
 
-            if(cartItem == null || cartItem.cart.userId != request.userId)
+            if(cartItem == null || cartItem?.cart?.userId != request.userId)//notfound or dont have permission to get into another cart's user
             {
                 return Result<bool>.Failure("Bạn không có quyền cập nhật sản phẩm nì nho~~");
             }
 
-            if(request.quantity == 0)
+            if(request.quantity == 0)//Setting if in cart, itemCart quantity = 0 => remove it out of cart
             {
-                cartItem.cart.updatedAt = DateTime.UtcNow;
-                _cartRepository.RemoveCartItem(cartItem);
-                _cartRepository.UpdateCart(cartItem.cart);
+                cartItem.cart.updatedAt = DateTime.UtcNow;//update time
+                _cartRepository.RemoveCartItem(cartItem);//remove cartItem out of cart
+                _cartRepository.UpdateCart(cartItem.cart);//Throw it into AppDBContext to prepare command update to save in DB
 
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);//Save into DB
                 return Result<bool>.Success(true);
             }
 
-            if(cartItem.product == null)
+            if(cartItem.product == null)//Make sure the product is still existing in cart in case quantity > 0
             {
                 return Result<bool>.Failure("Không tìm thấy sản phẩm");
             }
 
-            if(cartItem.product.stockQuantity < request.quantity)
+            if(cartItem.product.stockQuantity < request.quantity)//Compared between quantity in DB and newQuantity from user
             {
                 return Result<bool>.Failure("Số lượng trong kho không đủ");
             }

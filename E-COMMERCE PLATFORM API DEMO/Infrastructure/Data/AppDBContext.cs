@@ -16,6 +16,8 @@ namespace Infrastructure.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -95,6 +97,47 @@ namespace Infrastructure.Data
 
                 entity.HasIndex(i => new { i.cartId, i.productId })
                       .IsUnique();
+
+                entity.HasOne(i => i.product)
+                      .WithMany()
+                      .HasForeignKey(i => i.productId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(o => o.orderId);
+
+                entity.Property(o => o.totalAmount)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(o => o.status)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.HasOne(o => o.user)
+                      .WithMany()
+                      .HasForeignKey(o => o.userId);
+
+                entity.HasMany(o => o.items)
+                      .WithOne(i => i.order)
+                      .HasForeignKey(i => i.orderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.HasKey(i => i.orderItemId);
+
+                entity.Property(i => i.productName)
+                      .IsRequired()
+                      .HasMaxLength(200);
+
+                entity.Property(i => i.unitPrice)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(i => i.lineTotal)
+                      .HasColumnType("decimal(18,2)");
 
                 entity.HasOne(i => i.product)
                       .WithMany()
