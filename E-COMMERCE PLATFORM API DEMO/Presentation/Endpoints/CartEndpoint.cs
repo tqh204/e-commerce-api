@@ -1,5 +1,6 @@
 ﻿using Application.Features.Cart.Commands;
 using Application.Features.Cart.Queries;
+using Application.Features.Coupon.Commands;
 using Azure.Core;
 using Domain.Entities;
 using FluentValidation;
@@ -108,6 +109,37 @@ namespace WebAPI.Endpoints
                 return Results.Ok(new {Message = "Cập nhật giỏ hàng thành cong!"});
             });
 
+            group.MapPost("/apply-coupon", async (
+                RequestApplyCode request,
+                ClaimsPrincipal user,
+                IMediator mediator,
+                IValidator<ApplyCouponCommand> validator) =>
+            {
+                var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdValue))
+                {
+                    return Results.Unauthorized();
+                }
+
+                var userId = Guid.Parse(userIdValue);
+                var command = new ApplyCouponCommand(
+                    userId,
+                    request.code);
+                var validationResult = await validator.ValidateAsync(command);
+                if (!validationResult.IsValid)
+                {
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+                }
+
+                var result = await mediator.Send(command);
+                if (!result.IsSuccess)
+                {
+                    return Results.BadRequest(new { Message = result.ErrorMessage });
+                }
+
+                return Results.Ok(new { Message = "Áp dụng code thành công", IsApplied = result.Data });
+            });
+
         }
     }
     //Why need this method? So Instead of using AddToCartCommand(That means you have to use the userId like a request also) Ex: U must sign to 3 parameters: userId, productId and quantity).
@@ -118,4 +150,6 @@ namespace WebAPI.Endpoints
     
     
     public record UpdateCartItemRequest(int quantity);
+
+    public record RequestApplyCode(string code);
 }

@@ -18,6 +18,7 @@ namespace Infrastructure.Data
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<Coupon> Coupons { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -77,6 +78,19 @@ namespace Infrastructure.Data
                       .WithOne(i => i.cart)
                       .HasForeignKey(i => i.cartId)
                       .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(i => i.discountAmount)
+                      .HasColumnType("decimal(18,2)")
+                      .HasDefaultValue(0);
+
+                entity.Property(i => i.couponCode)
+                      .HasMaxLength(100)
+                      .IsRequired(false);
+
+                entity.HasOne(c => c.coupon)
+                      .WithMany()
+                      .HasForeignKey(u => u.couponId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<CartItem>(entity =>
@@ -144,6 +158,29 @@ namespace Infrastructure.Data
                       .HasForeignKey(i => i.productId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<Coupon>(entity =>
+            {
+                entity.HasKey(c => c.couponId);
+
+                entity.Property(c => c.code)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.HasIndex(c => c.code)
+                      .IsUnique();
+
+                entity.Property(c => c.discountType)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(c => c.value)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(c => c.minOrderValue)
+                      .HasColumnType("decimal(18,2)");
+            });
+
 
         }
     }

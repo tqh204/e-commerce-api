@@ -12,5 +12,9 @@ namespace Domain.Entities
         public DateTime? updatedAt { get; set; }
         public User? user { get; set; }
         public ICollection<CartItem> items { get; set; } = new List<CartItem>();
+        public Guid? couponId { get; set; }
+        public string? couponCode { get; set; }
+        public decimal discountAmount { get; set; }
+        public Coupon? coupon { get; set; }
     }
 }

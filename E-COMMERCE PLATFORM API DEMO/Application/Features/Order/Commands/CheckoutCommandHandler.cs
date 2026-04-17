@@ -12,11 +12,13 @@ namespace Application.Features.Order.Commands
         private readonly IOrderRepository _orderRepository;
         private readonly ICartRepository _cartRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public CheckoutCommandHandler(IOrderRepository orderRepository, ICartRepository cartRepository, IUnitOfWork unitOfWork)
+        private readonly ICouponRepository _couponRepository;
+        public CheckoutCommandHandler(IOrderRepository orderRepository, ICartRepository cartRepository, IUnitOfWork unitOfWork, ICouponRepository couponRepository)
         {
             _orderRepository = orderRepository;
             _cartRepository = cartRepository;
             _unitOfWork = unitOfWork;
+            _couponRepository = couponRepository;
         }
 
         public async Task<Result<Guid>> Handle(CheckoutCommand request, CancellationToken cancellationToken)
@@ -44,11 +46,61 @@ namespace Application.Features.Order.Commands
                     }
                 }
 
+                Domain.Entities.Coupon? coupon = null;
+                decimal discount = 0;
+                var subTotal = cart.items.Sum(x => x.unitPrice * x.quantity);
+                if(cart.couponId.HasValue)
+                {
+                    coupon = await _couponRepository.GetCouponByIdAsync(cart.couponId.Value);
+                    if(coupon == null)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                        return Result<Guid>.Failure("Không tìm thấy code");
+                    }
+
+                    var now =DateTime.UtcNow;
+                    if(!coupon.isActive)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                        return Result<Guid>.Failure("Code chưa hoạt động");
+                    }
+
+                    if(coupon.startDate > now)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                        return Result<Guid>.Failure("Code hiện chưa khả dụng");
+                    }
+
+                    if(coupon.endDate < now)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                        return Result<Guid>.Failure("Code hiện không khả dụng");
+                    }
+
+                    if(coupon.usedCount > coupon.usageLimit)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                        return Result<Guid>.Failure("Code đã hết lượt sử dụng");
+                    }
+
+                    if(subTotal < coupon.minOrderValue)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                        return Result<Guid>.Failure("Chưa đủ điều kiện để sử dụng");
+                    }
+
+                    discount = cart.discountAmount;
+                    if(discount > subTotal)
+                    {
+                        discount = subTotal;
+                    }
+                }
                 var order = new Domain.Entities.Order//If pass, create a new order
                 {
                     orderId = Guid.NewGuid(), //Create an id for order by Guid
                     userId = request.userId,//take the userId from request to make sure that the system is creating an order for the right user
-                    totalAmount = cart.items.Sum(x => x.unitPrice * x.quantity),//take the price of item * quantity of item 
+                    totalAmount = subTotal - discount,
+                   //totalAmount = cart.items.Sum(x => x.unitPrice * x.quantity),//take the price of item * quantity of item 
                     status = "PENDING",
                     createdAt = DateTime.UtcNow,
                     updatedAt = null
@@ -70,6 +122,13 @@ namespace Application.Features.Order.Commands
                         lineTotal = item.unitPrice * item.quantity,
                     };
                     order.items.Add(orderItem);//add items into Order
+                }
+
+                if(coupon != null)
+                {
+                    coupon.usedCount += 1;
+                    coupon.updatedAt = DateTime.UtcNow;
+                    _couponRepository.Update(coupon);
                 }
                 await _orderRepository.AddAsync(order);
                 _cartRepository.RemoveCart(cart);
