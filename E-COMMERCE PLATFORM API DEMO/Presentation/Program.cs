@@ -31,6 +31,7 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IOrderRepository,  OrderRepository>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 builder.Services.AddScoped<ILoyaltyClient, GrpcLoyaltyClient>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
 builder.Services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);// Đăng ký FluentValidation
@@ -63,4 +64,5 @@ app.MapProductEndpoints();
 app.MapCartEndpoints();
 app.MapOrderEndpoints();
 app.MapCouponEndpoints();
+app.MapReviewEndpoints();
 app.Run();

@@ -19,6 +19,7 @@ namespace Infrastructure.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Coupon> Coupons { get; set; }
+        public DbSet<Review> Reviews { get; set;  }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -188,7 +189,26 @@ namespace Infrastructure.Data
                 entity.Property(c => c.minOrderValue)
                       .HasColumnType("decimal(18,2)");
             });
-                
+
+            modelBuilder.Entity<Review>(entity =>
+            {
+                entity.HasKey(r => r.reviewId);
+                entity.Property(r => r.rating)
+                      .IsRequired();
+                entity.Property(r => r.comment)
+                      .HasMaxLength(1000)
+                      .IsRequired(false);
+                entity.HasIndex(r => new { r.userId, r.productId })
+                      .IsUnique();
+                entity.HasOne(r => r.user)
+                      .WithMany()
+                      .HasForeignKey(r => r.userId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(r => r.product)
+                      .WithMany()
+                      .HasForeignKey(r => r.productId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
 
         }
     }
