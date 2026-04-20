@@ -15,9 +15,9 @@ namespace Application.Features.Coupon.Commands
                 .MaximumLength(50).WithMessage("Code tối đa 50 ký tự");
 
             RuleFor(x => x.discountType)
-                .NotEmpty().WithMessage("DiscountType không được để trống")
-                .Must(x => x == "PERCENTAGE" || x == "FIXED_AMOUNT")
-                .WithMessage("DiscountType phải là PERCENTAGE hoặc FIXED_AMOUNT");
+                .IsInEnum()
+                .WithMessage("DiscountType không hợp lệ");
+
 
             RuleFor(x => x.value)
                 .GreaterThan(0).WithMessage("Value phải lớn hơn 0");

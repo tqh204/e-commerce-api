@@ -9,5 +9,7 @@ namespace Application.Interfaces
     {
         Task AddAsync(Order order);
         Task<IReadOnlyList<Order>> GetOrderByUserId(Guid userId);
+        Task<Order?> GetOrderIdAsync(Guid orderId);
+        void Update(Order order);
     }
 }

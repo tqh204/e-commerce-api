@@ -31,6 +31,11 @@ namespace Infrastructure.Data
                 entity.Property(u => u.email).IsRequired().HasMaxLength(130);
                 entity.Property(u => u.passwordHash).IsRequired();
                 entity.HasOne(u => u.role).WithMany().HasForeignKey(u => u.roleId);
+                entity.Property(u => u.rank)
+                      .HasConversion<string>()
+                      .IsRequired()
+                      .HasMaxLength(20);
+
             });
 
             modelBuilder.Entity<Role>(entity =>
@@ -126,8 +131,10 @@ namespace Infrastructure.Data
                       .HasColumnType("decimal(18,2)");
 
                 entity.Property(o => o.status)
+                      .HasConversion<string>()
                       .IsRequired()
                       .HasMaxLength(50);
+
 
                 entity.HasOne(o => o.user)
                       .WithMany()
@@ -171,6 +178,7 @@ namespace Infrastructure.Data
                       .IsUnique();
 
                 entity.Property(c => c.discountType)
+                      .HasConversion<string>()
                       .IsRequired()
                       .HasMaxLength(50);
 
@@ -180,7 +188,7 @@ namespace Infrastructure.Data
                 entity.Property(c => c.minOrderValue)
                       .HasColumnType("decimal(18,2)");
             });
-
+                
 
         }
     }

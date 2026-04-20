@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Application.Features.Order.Queries
 {
     public record OrderDTO(
-        Guid orederId,
+        Guid orderId,
         decimal totalAmount,
         string status,
         DateTime createdAt,

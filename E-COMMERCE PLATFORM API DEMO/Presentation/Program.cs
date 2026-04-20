@@ -4,10 +4,12 @@ using Application.Interfaces;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Loyalty.Grpc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Presentation.Endpoints;
+using Presentation.Services;
 using System.Text;
 using WebAPI.Endpoints;
 using WebAPI.Extensions;
@@ -28,6 +30,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IOrderRepository,  OrderRepository>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+builder.Services.AddScoped<ILoyaltyClient, GrpcLoyaltyClient>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
 builder.Services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);// Đăng ký FluentValidation
@@ -35,36 +38,15 @@ builder.Services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly)
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(LoginCommand).Assembly));// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
 builder.Services.AddValidatorsFromAssembly(typeof(LoginCommand).Assembly);// Đăng ký FluentValidation
 
-
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => //Declared that this syntax would be used for authenticate. And using the JWT bearer standard
-//{                                                                                                  //And AddJwtBearer syntax is used for customing the options to check JWT
-//    options.TokenValidationParameters = new TokenValidationParameters //List parameters to check
-//    {
-//        ValidateIssuerSigningKey = true, //Checking this Key is valid, and whether this key is provided by this app?
-//        IssuerSigningKey = new SymmetricSecurityKey( //Providing a private key to decrypt the key, its decoding from Jwt to Bytes to compare.
-//            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-//        ),
-//        ValidateIssuer = true, //Checking the issuer whether did it match? Note: validate: Checking the origin and considering if it valid or not
-//        ValidIssuer = builder.Configuration["Jwt:Issuer"],                      //valid: Checking if this value belongs to this app, provided by this app
-
-//        ValidateAudience = true,//Checking this Token is provided to who? Its provied for this app, right?
-//        ValidAudience = builder.Configuration["Jwt:Audience"],
-
-//        ValidateLifetime = true,//Checking expireTime
-//        ClockSkew = TimeSpan.Zero//Expired = 0 = timeout
-//    };
-//});
-
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("AdminOnly", policy =>
-//        policy.RequireRole("Admin"));
-
-//    options.AddPolicy("UserOrAdmin", policy =>
-//        policy.RequireRole("User", "Admin"));
-//});
+builder.Services.AddGrpcClient<LoyaltyService.LoyaltyServiceClient>(options =>
+{
+    options.Address = new Uri("https://localhost:7231");
+});
 
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+Application.Common.MapsterConfig.Register();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace Application.Features.Coupon.Commands
 {
     public record CreateCouponCommand(
         string code,
-        string discountType,
+        DiscountType discountType,
         decimal value,
         decimal minOrderValue,
         DateTime startDate,

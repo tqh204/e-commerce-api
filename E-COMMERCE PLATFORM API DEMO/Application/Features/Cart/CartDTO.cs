@@ -9,7 +9,10 @@ namespace Application.Features.Cart
         Guid cartId,
         Guid userId,
         IReadOnlyList<CartItemDTO> items,
-        decimal totalAmount
+        decimal totalAmount,
+        string? couponCode,
+        decimal discountAmount,
+        decimal finalAmount
     );
 
     public record CartItemDTO(

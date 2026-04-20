@@ -1,0 +1,43 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Loyalty.Grpc";
+
+package loyalty;
+
+enum LoyaltyRankProto {
+  LOYALTY_RANK_PROTO_UNSPECIFIED = 0;
+  BRONZE = 1;
+  SILVER = 2;
+  GOLD = 3;
+  DIAMOND = 4;
+}
+
+service LoyaltyService {
+  rpc PreviewBenefits (PreviewBenefitsRequest) returns (PreviewBenefitsResponse);
+  rpc CompleteOrder (CompleteOrderRequest) returns (CompleteOrderResponse);
+}
+
+message PreviewBenefitsRequest {
+  string userId = 1;
+  int32 currentPoints = 2;
+  double subtotalAfterCoupon = 3;
+}
+
+message PreviewBenefitsResponse {
+  LoyaltyRankProto rank = 1;
+  double rankDiscountPercent = 2;
+  double rankDiscountAmount = 3;
+}
+
+message CompleteOrderRequest {
+  string userId = 1;
+  int32 currentPoints = 2;
+  double completedOrderAmount = 3;
+}
+
+message CompleteOrderResponse {
+  int32 earnedPoints = 1;
+  int32 totalPoints = 2;
+  LoyaltyRankProto newRank = 3;
+  double nextRankDiscountPercent = 4;
+}

@@ -1,5 +1,6 @@
 ﻿using Application.Features.Order.Commands;
 using Application.Features.Order.Queries;
+using Azure.Core;
 using MediatR;
 using System.Security.Claims;
 
@@ -50,6 +51,28 @@ namespace WebAPI.Endpoints
                 var result = await mediator.Send(new GetOrderQuery(userId));
                 return Results.Ok(result);
             });
+
+            group.MapPut("/{orderId:guid}/complete", async (
+                        ClaimsPrincipal user,
+                        Guid orderId,
+                        IMediator mediator) =>
+            {
+                var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                var userId = Guid.Parse(userIdValue);
+                var command = new CompleteOrderCommand(
+                    userId,
+                    orderId);
+                var result = await mediator.Send(command);
+
+                if (!result.IsSuccess)
+                {
+                    return Results.BadRequest(new { Message = result.ErrorMessage });
+                }
+
+                return Results.Ok(new { Message = "Order đã được cập nhật thành COMPLETED" });
+            }).RequireAuthorization("AdminOnly");
+
         }
     }
 }

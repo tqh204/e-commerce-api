@@ -20,5 +20,8 @@ namespace Infrastructure.Repositories
         public async Task<User?> GetByEmailAsync(string email) => await _context.Users.Include(u => u.role).FirstOrDefaultAsync(u => u.email == email); //Find user satisfied conditions, if not, return null
 
         public async Task<Role?> GetRoleByNameAsync(string roleName) => await _context.Set<Role>().FirstOrDefaultAsync(u => u.RoleName == roleName);//Find nameRole
+
+        public async Task<User?> GetUserByIdAsync(Guid userId) => await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        public void Update(User user) => _context.Users.Update(user);
     }
 }

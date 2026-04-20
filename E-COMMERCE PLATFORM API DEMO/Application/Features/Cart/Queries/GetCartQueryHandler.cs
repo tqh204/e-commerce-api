@@ -23,6 +23,9 @@ namespace Application.Features.Cart.Queries
                     Guid.Empty,
                     request.userId,
                     new List<CartItemDTO>(),
+                    0,
+                    null,
+                    0,
                     0
                     );
                 return Result<CartDTO>.Success(emptyCart);
@@ -37,11 +40,20 @@ namespace Application.Features.Cart.Queries
 
             var totalAmount = items.Sum(item => item.lineTotal);//This is a sum amount of cart
 
+            var discountAmount = cart.discountAmount;
+            var finalAmount = totalAmount - discountAmount;
+            if(finalAmount < 0)
+            {
+                finalAmount = 0;
+            }
             var cartDTO = new CartDTO(//create new cartDTO to update data to return to user
                 cart.cartId,
                 cart.userId,
                 items,
-                totalAmount);
+                totalAmount,
+                cart.couponCode,
+                discountAmount,
+                finalAmount);
             return Result<CartDTO>.Success(cartDTO);
 
         }

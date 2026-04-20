@@ -17,17 +17,18 @@ namespace Application.Features.Coupon.Commands
         }
         public async Task<Result<Guid>> Handle(CreateCouponCommand request, CancellationToken cancellationToken)
         {
-            var couponCode = await _couponRepository.GetCodeAsync(request.code);
+            var normalizeCode = request.code.Trim().ToUpper();
+            var couponCode = await _couponRepository.GetCodeAsync(normalizeCode);
             if(couponCode != null)
             {
                 return Result<Guid>.Failure("code đã tồn tại");
             }
 
-            var discount = request.discountType.Trim().ToUpper();
-            if(discount != "PERCENTAGE" && discount != "FIXED_AMOUNT")
-            {
-                return Result<Guid>.Failure("Kiểu discount không hợp lệ");
-            }
+            //var discount = request.discountType.Trim().ToUpper();
+            //if(discount != "PERCENTAGE" && discount != "FIXED_AMOUNT")
+            //{
+            //    return Result<Guid>.Failure("Kiểu discount không hợp lệ");
+            //}
 
             if(request.value <= 0)
             {
@@ -42,7 +43,7 @@ namespace Application.Features.Coupon.Commands
             var coupon = new Domain.Entities.Coupon
             {
                 couponId = Guid.NewGuid(),
-                code = request.code,
+                code = normalizeCode,
                 discountType = request.discountType,
                 value = request.value,
                 usageLimit = request.usageLimit,

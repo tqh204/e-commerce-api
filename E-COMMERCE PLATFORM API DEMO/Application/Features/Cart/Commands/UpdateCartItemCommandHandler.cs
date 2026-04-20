@@ -32,6 +32,9 @@ namespace Application.Features.Cart.Commands
             if(request.quantity == 0)//Setting if in cart, itemCart quantity = 0 => remove it out of cart
             {
                 cartItem.cart.updatedAt = DateTime.UtcNow;//update time
+                cartItem.cart.couponId = null;
+                cartItem.cart.couponCode = null;
+                cartItem.cart.discountAmount = 0;
                 _cartRepository.RemoveCartItem(cartItem);//remove cartItem out of cart
                 _cartRepository.UpdateCart(cartItem.cart);//Throw it into AppDBContext to prepare command update to save in DB
 
@@ -52,6 +55,9 @@ namespace Application.Features.Cart.Commands
             cartItem.quantity = request.quantity;
             cartItem.updatedAt = DateTime.UtcNow;
             cartItem.cart.updatedAt = DateTime.UtcNow;
+            cartItem.cart.couponId = null;
+            cartItem.cart.couponCode = null;
+            cartItem.cart.discountAmount = 0;
 
             _cartRepository.UpdateCartItem(cartItem);
             _cartRepository.UpdateCart(cartItem.cart);

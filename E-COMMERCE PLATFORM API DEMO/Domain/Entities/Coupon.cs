@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,7 +9,7 @@ namespace Domain.Entities
     {
         public Guid couponId { get; set; }
         public string? code {  get; set; }
-        public string? discountType { get; set; }
+        public DiscountType discountType { get; set; }
         public decimal value { get; set; }
         public decimal minOrderValue { get; set; }
         public DateTime startDate { get; set; }

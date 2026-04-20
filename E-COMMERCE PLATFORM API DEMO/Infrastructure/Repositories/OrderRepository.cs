@@ -19,5 +19,9 @@ namespace Infrastructure.Repositories
                                                                                                       .Where(u => u.userId == userId)
                                                                                                       .OrderByDescending(u => u.createdAt)
                                                                                                       .ToListAsync();
+
+        public async Task<Order?> GetOrderIdAsync(Guid orderId) => await _context.Orders.Include(o => o.user).Include(o => o.items).FirstOrDefaultAsync(o => o.orderId == orderId);
+
+        public void Update(Order order) => _context.Orders.Update(order);
     }
 }

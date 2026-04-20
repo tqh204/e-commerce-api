@@ -1,5 +1,7 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
+using Loyalty.Grpc;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -13,12 +15,16 @@ namespace Application.Features.Order.Commands
         private readonly ICartRepository _cartRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICouponRepository _couponRepository;
-        public CheckoutCommandHandler(IOrderRepository orderRepository, ICartRepository cartRepository, IUnitOfWork unitOfWork, ICouponRepository couponRepository)
+        private readonly ILoyaltyClient _loyaltyClient;
+        private readonly IUserRepository _userRepository;
+        public CheckoutCommandHandler(IOrderRepository orderRepository, ICartRepository cartRepository, IUnitOfWork unitOfWork, ICouponRepository couponRepository, ILoyaltyClient loyaltyClient, IUserRepository userRepository)
         {
             _orderRepository = orderRepository;
             _cartRepository = cartRepository;
             _unitOfWork = unitOfWork;
             _couponRepository = couponRepository;
+            _loyaltyClient = loyaltyClient;
+            _userRepository = userRepository;
         }
 
         public async Task<Result<Guid>> Handle(CheckoutCommand request, CancellationToken cancellationToken)
@@ -77,7 +83,7 @@ namespace Application.Features.Order.Commands
                         return Result<Guid>.Failure("Code hiện không khả dụng");
                     }
 
-                    if(coupon.usedCount > coupon.usageLimit)
+                    if(coupon.usedCount >= coupon.usageLimit)
                     {
                         await _unitOfWork.RollbackTransactionAsync(cancellationToken);
                         return Result<Guid>.Failure("Code đã hết lượt sử dụng");
@@ -95,13 +101,35 @@ namespace Application.Features.Order.Commands
                         discount = subTotal;
                     }
                 }
+
+                var afterCoupon = subTotal - discount;
+                if(afterCoupon < 0)
+                {
+                    afterCoupon = 0;
+                }
+
+                var user = await _userRepository.GetUserByIdAsync(request.userId);
+                if(user == null)
+                {
+                    await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                    return Result<Guid>.Failure("Không tìm thấy user");
+                }
+
+                var loyaltyPreview = await _loyaltyClient.PreviewBenefitsAsync(request.userId, user.loyaltyPoint, afterCoupon, cancellationToken);
+                var rankDiscount = loyaltyPreview.RankDiscountAmount;
+                var finalTotal = afterCoupon  - rankDiscount;
+
+                if(finalTotal < 0)
+                {
+                    finalTotal = 0;
+                }
                 var order = new Domain.Entities.Order//If pass, create a new order
                 {
                     orderId = Guid.NewGuid(), //Create an id for order by Guid
                     userId = request.userId,//take the userId from request to make sure that the system is creating an order for the right user
-                    totalAmount = subTotal - discount,
+                    totalAmount = finalTotal,
                    //totalAmount = cart.items.Sum(x => x.unitPrice * x.quantity),//take the price of item * quantity of item 
-                    status = "PENDING",
+                    status = OrderStatus.Pending,
                     createdAt = DateTime.UtcNow,
                     updatedAt = null
                 };

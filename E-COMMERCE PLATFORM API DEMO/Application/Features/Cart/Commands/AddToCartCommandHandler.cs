@@ -83,11 +83,9 @@ namespace Application.Features.Cart.Commands
                 };
                 await _cartRepository.AddCartItemAsync(carItem);
             }
-            //cart.updatedAt = DateTime.UtcNow;//Old cart will be updated in this row, but new cart no need to updated cuz its updated at the same time created
-            //if (!isNewCart)
-            //{
-            //    _cartRepository.UpdateCart(cart);
-            //}
+            cart.couponId = null;
+            cart.couponCode = null;
+            cart.discountAmount = 0;
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result<bool>.Success(true);
         }

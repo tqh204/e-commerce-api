@@ -2,5 +2,6 @@
   <Project Path="Application/Application.csproj" />
   <Project Path="Domain/Domain.csproj" />
   <Project Path="Infrastructure/Infrastructure.csproj" />
+  <Project Path="Loyalty.Grpc/Loyalty.Grpc.csproj" Id="b7f52c13-c8ca-4888-a97a-bad876c621ff" />
   <Project Path="Presentation/WebAPI.csproj" />
 </Solution>

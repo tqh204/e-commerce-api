@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,7 +10,7 @@ namespace Domain.Entities
         public Guid orderId {  get; set; }
         public Guid userId { get; set; }
         public decimal totalAmount { get; set; }
-        public string status { get; set; } = "PENDING";
+        public OrderStatus status { get; set; } = OrderStatus.Pending;
         public DateTime createdAt { get; set; } = DateTime.UtcNow;
         public DateTime? updatedAt { get; set; }
 

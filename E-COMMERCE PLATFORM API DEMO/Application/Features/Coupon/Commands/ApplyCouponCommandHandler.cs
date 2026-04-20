@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -59,11 +60,11 @@ namespace Application.Features.Coupon.Commands
                 return Result<bool>.Failure("Code chưa đạt đủ điều kiện để sử dụng");
             }
             decimal discountAmount;
-            if (code.discountType == "PERCENTAGE")
+            if (code.discountType == DiscountType.Percentage)
             {
                  discountAmount = subTotal * code.value / 100;
             }
-            else if(code.discountType == "FIXED_AMOUNT")
+            else if(code.discountType == DiscountType.FixedAmount)
             {
                  discountAmount = code.value;
             }

@@ -11,5 +11,7 @@ namespace Application.Interfaces
         public Task<bool> IsEmailUniqueAsync(string email);
         Task<User?> GetByEmailAsync(string email);
         Task<Role?> GetRoleByNameAsync(string rolename);
+        Task<User?> GetUserByIdAsync(Guid userid);
+        void Update(User user);
     }
 }
