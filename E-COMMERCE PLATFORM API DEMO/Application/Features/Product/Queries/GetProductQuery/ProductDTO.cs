@@ -4,6 +4,15 @@ using System.Text;
 
 namespace Application.Features.Product.Queries.GetProductQuery
 {
+    public record VariantDTO(
+    Guid variantId,
+    string sku,
+    string? size,
+    string? color,
+    string? material,
+    decimal price,
+    int inventory
+);
     public record ProductDTO
     (
         Guid productId,
@@ -12,6 +21,7 @@ namespace Application.Features.Product.Queries.GetProductQuery
         decimal price,
         int stockQuantity,
         int categoryId,
-        string CategoryName
+        string CategoryName,
+        List<VariantDTO> variants
     );
 }

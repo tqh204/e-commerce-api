@@ -1,6 +1,7 @@
 ﻿using Application.Common.Loyalty;
 using Application.Features.Order.Queries;
 using Domain.Entities;
+using Domain.Enums;
 using Mapster;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,11 @@ namespace Application.Common
                 .Map(dest => dest.userId, src => src.Id)
                 .Map(dest => dest.loyaltyPoints, src => src.loyaltyPoint)
                 .Map(dest => dest.rank, src => src.rank.ToString());
+            //TypeAdapterConfig<LoyaltyRankProto, LoyaltyRank>
+            //    .NewConfig()
+            //    .Map(dest => dest.RankDiscountAmount, src => src.RankDiscountAmount)
+            //    .Map(dest => dest.NextRank, src => src.NextRank)
+            //    .Map(dest => dest.PointsToNextRank, src => src.PointsToNextRank);
         }
     }
 }

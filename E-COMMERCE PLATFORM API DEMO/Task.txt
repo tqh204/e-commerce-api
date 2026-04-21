@@ -63,3 +63,52 @@ Dữ liệu: productId, rating (1-5 sao), comment.1
 Method | Path: GET /api/v1/products/{id}/reviews1
 Yêu cầu: Trả về danh sách đánh giá có hỗ trợ phân trang.1
 Tính toán và trả về điểm trung bình (Average Rating) của sản phẩm.1
+Task 7: Product Variant (Quản lý Biến thể Sản phẩm)
+
+
+Mục tiêu: Cho phép một sản phẩm có nhiều thuộc tính khác nhau (ví dụ: Kích cỡ, Màu sắc, Chất liệu) với tồn kho và giá riêng biệt.
+8.1. Variant Data Model & Retrieval
+Yêu cầu: Thiết kế lại mô hình dữ liệu để lưu trữ các biến thể sản phẩm (Variant: size, color, etc.) liên kết với sản phẩm gốc, mỗi Variant phải có SKU riêng, price và inventory riêng biệt. API 2.1. List Products và 2.2. Product Details cần hiển thị thông tin biến thể tương ứng.
+8.2. Variant Management API (Admin)
+Method | Path: POST, PUT, DELETE cho /api/v1/admin/variants
+Yêu cầu: Chỉ cho phép quyền Admin truy cập để thêm, sửa, xóa biến thể cho một sản phẩm cụ thể.
+Task 8: Advanced Promotion Rules
+
+
+Mục tiêu: Xây dựng cơ chế khuyến mãi linh hoạt hơn, vượt ra ngoài mã giảm giá cố định.
+9.1. Promotion Rule Management (Admin)
+Yêu cầu: Cho phép Admin tạo các quy tắc khuyến mãi phức tạp, bao gồm các loại:
+Buy X Get Y Free (Ví dụ: Mua 2 sản phẩm A bất kỳ Tặng 1 sản phẩm B).
+Custom Discounts (Ví dụ: Giảm Z% cho đơn hàng chứa sản phẩm từ danh mục X).
+Các quy tắc phải có điều kiện áp dụng (sản phẩm, danh mục, thời gian) và ưu tiên (priority).
+9.2. Dynamic Discount Calculation
+Yêu cầu: Cập nhật logic giỏ hàng/thanh toán (API 4.1. Checkout) để tự động quét và áp dụng tất cả các quy tắc khuyến mãi đủ điều kiện theo thứ tự ưu tiên, tính toán số tiền giảm giá lớn nhất cho người dùng trước khi áp dụng Coupon (Task 5.2).
+
+Task 9: Shipping Integration (Tích hợp Đơn vị Vận chuyển - Ahamove)
+
+
+Mục tiêu: Tích hợp API của đơn vị vận chuyển (ví dụ: Ahamove) để tính phí vận chuyển chính xác theo thời gian thực và tự động tạo đơn giao hàng.
+9.1. Get Shipping Fee API (Tính Phí Vận Chuyển)
+Method | Path: POST /api/v1/shipping/fee
+Yêu cầu: Gọi API của Ahamove, truyền thông tin địa chỉ giao hàng và chi tiết gói hàng (khối lượng, kích thước). Trả về chi phí vận chuyển để hiển thị cho User trong bước Checkout (trước khi thanh toán).
+9.2. Create Shipment API (Tạo Đơn Giao Hàng)
+Method | Path: POST /api/v1/orders/{orderId}/create-shipment
+Yêu cầu: Sau khi đơn hàng được tạo thành công, tự động gọi API của Ahamove để đăng ký một đơn giao hàng. Đảm bảo truyền chính xác các thông tin như địa chỉ lấy hàng, địa chỉ giao hàng, và số tiền thu hộ COD (nếu có).
+9.3. Tracking Webhook & Status Update
+Yêu cầu: Thiết lập một Webhook Endpoint để nhận thông báo cập nhật trạng thái đơn hàng (ví dụ: "Đang giao", "Giao hàng thành công") từ Ahamove và cập nhật trạng thái tương ứng trong bản ghi đơn hàng của E-commerce.
+Task 10: Online Payment Integration (Tích hợp Thanh toán Trực tuyến - PayOS)
+Mục tiêu: Tích hợp cổng thanh toán PayOS để xử lý các giao dịch trực tuyến (thẻ, chuyển khoản ngân hàng, ví điện tử) một cách an toàn và tự động.
+10.1. Create Payment Link API (Tạo Link Thanh toán)
+Method | Path: POST /api/v1/payment/payos/create
+Yêu cầu:
+Endpoint này nhận thông tin đơn hàng (ví dụ: order_id, total_amount, description).
+Thực hiện gọi API của PayOS, truyền dữ liệu đơn hàng cùng với các URL cần thiết (returnUrl, cancelUrl).
+Trả về Payment Link URL từ PayOS để Client (Front-end) chuyển hướng người dùng sang giao diện thanh toán.
+10.2. Payment Webhook/IPN Handler (Xử lý Webhook)
+Method | Path: POST /api/v1/payment/payos/webhook
+Yêu cầu:
+Thiết lập một endpoint bảo mật để nhận thông báo trạng thái giao dịch theo thời gian thực từ PayOS (IPN - Instant Payment Notification).
+Sau khi xác minh tính toàn vẹn của dữ liệu (ví dụ: sử dụng chữ ký điện tử/checksum), cập nhật trạng thái thanh toán của đơn hàng trong DB (ví dụ: từ PENDING_PAYMENT sang PAID hoặc FAILED).
+Nếu giao dịch thành công, hệ thống cần kích hoạt các bước xử lý đơn hàng còn lại, bao gồm Task 4.1. Checkout Logic (trừ tồn kho) và Task 9.2. Create Shipment API.
+10.3. User Redirect Handling
+Yêu cầu: Xác định logic xử lý khi người dùng được chuyển hướng trở lại trang E-commerce (qua returnUrl hoặc cancelUrl), hiển thị thông báo trạng thái đơn hàng tương ứng.

@@ -20,6 +20,7 @@ namespace Infrastructure.Data
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Coupon> Coupons { get; set; }
         public DbSet<Review> Reviews { get; set;  }
+        public DbSet<Variant> Variants { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -207,6 +208,31 @@ namespace Infrastructure.Data
                 entity.HasOne(r => r.product)
                       .WithMany()
                       .HasForeignKey(r => r.productId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Variant>(entity =>
+            {
+                entity.HasKey(v => v.variantId);
+
+                entity.Property(v => v.sku)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.HasIndex(v => v.sku).IsUnique().HasFilter("[isDeleted] = 0");
+
+                entity.Property(v => v.price)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(v => v.inventory)
+                      .IsRequired();
+
+                entity.Property(v => v.isDeleted)
+                      .HasDefaultValue(false);
+
+                entity.HasOne(v => v.product)
+                      .WithMany(p => p.variants)
+                      .HasForeignKey(v => v.productId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 

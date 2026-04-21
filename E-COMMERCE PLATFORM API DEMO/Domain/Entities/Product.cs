@@ -13,6 +13,7 @@ namespace Domain.Entities
         public int stockQuantity { get; set; }
         public int categoryId { get; set; }
         public Category category { get; set; }
+        public ICollection<Variant> variants { get; set; } = new List<Variant>();
         public bool isDeleted { get; set; }
         public DateTime createdAt { get; set; } = DateTime.UtcNow;
         public DateTime? updatedAt { get; set; }

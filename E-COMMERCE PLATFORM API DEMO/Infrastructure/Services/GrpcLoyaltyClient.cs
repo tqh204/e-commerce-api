@@ -1,9 +1,9 @@
-﻿using Application.Common.Loyalty;
+using Application.Common.Loyalty;
 using Application.Interfaces;
 using Domain.Enums;
 using Loyalty.Grpc;
 
-namespace Presentation.Services
+namespace Infrastructure.Services
 {
     public class GrpcLoyaltyClient : ILoyaltyClient
     {
@@ -13,16 +13,16 @@ namespace Presentation.Services
 
         public async Task<LoyaltyPreviewResult> PreviewBenefitsAsync(Guid userId, int currentPoints, decimal subtotalAfterCoupon, CancellationToken cancellationToken = default)
         {
-            var response = await _client.PreviewBenefitsAsync(new PreviewBenefitsRequest
+            var response = await _client.PreviewBenefitsAsync(new PreviewBenefitsRequest //Package and send the request to the gRPC service
             {
-                UserId = userId.ToString(),
+                UserId = userId.ToString(),//proto doesn't support Guid, so we convert it to string
                 CurrentPoints = currentPoints,
-                SubtotalAfterCoupon = (double)subtotalAfterCoupon
+                SubtotalAfterCoupon = (double)subtotalAfterCoupon//proto doesn't support decimal, so convert it to double
             }, cancellationToken: cancellationToken);
 
-            return new LoyaltyPreviewResult(
-                MapRank(response.Rank),
-                (decimal)response.RankDiscountPercent,
+            return new LoyaltyPreviewResult(//Convert response from proto to our application model
+                MapRank(response.Rank),//LoyaltyRankProto -> loyaltyRank
+                (decimal)response.RankDiscountPercent,//double -> decimal
                 (decimal)response.RankDiscountAmount
             );
         }

@@ -30,7 +30,19 @@ namespace Application.Features.Product.Queries.GetProductByIdQuery
                 product.price,
                 product.stockQuantity,
                 product.categoryId,
-                product.category.categoryName);
+                product.category.categoryName,
+                product.variants
+                        .Where(v => !v.isDeleted)
+                        .Select(v => new VariantDTO(
+                                v.variantId,
+                                v.sku ?? string.Empty,
+                                v.size,
+                                v.color,
+                                v.material,
+                                v.price,
+                                v.inventory
+                                    ))
+        .ToList());
             return Result<ProductDTO>.Success(productDTO);
         }
     }

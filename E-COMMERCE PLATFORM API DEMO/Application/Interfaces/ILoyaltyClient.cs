@@ -9,7 +9,7 @@ namespace Application.Interfaces
     {
         Task<LoyaltyPreviewResult> PreviewBenefitsAsync(
             Guid userId,
-            int currentPoints,
+            int currentPoints,  
             decimal subtotalAfterCoupon,
             CancellationToken cancellationToken = default);
 

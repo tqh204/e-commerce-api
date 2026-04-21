@@ -44,7 +44,7 @@ namespace Application.Features.Order.Commands
             {
                 return Result<bool>.Failure("Không tìm thấy user");
             }
-
+            //Call the gRPC service to calculating loyalty points and update user ranks
             var loyaltyResult = await _loyaltyClient.CompleteOrderAsync(
                 user.Id,
                 user.loyaltyPoint,

@@ -1,7 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
-using Loyalty.Grpc;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -102,22 +101,22 @@ namespace Application.Features.Order.Commands
                     }
                 }
 
-                var afterCoupon = subTotal - discount;
-                if(afterCoupon < 0)
+                var afterCoupon = subTotal - discount;//after checking a lot of rules to avoid the problem, we will calculate the price after discount of coupon, and then we will check the loyalty point of user to calculate the rank discount of user
+                if (afterCoupon < 0)
                 {
-                    afterCoupon = 0;
+                    afterCoupon = 0;//If the price after discount of coupon < 0, we will set it to 0 to avoid the problem of negative price
                 }
 
-                var user = await _userRepository.GetUserByIdAsync(request.userId);
-                if(user == null)
+                var user = await _userRepository.GetUserByIdAsync(request.userId);//Taking the userId at the present to check the loyalty point of user to calculate the rank discount of user
+                if (user == null)
                 {
                     await _unitOfWork.RollbackTransactionAsync(cancellationToken);
                     return Result<Guid>.Failure("Không tìm thấy user");
                 }
-
+                //Call the gRPC service first to review the price after calculating
                 var loyaltyPreview = await _loyaltyClient.PreviewBenefitsAsync(request.userId, user.loyaltyPoint, afterCoupon, cancellationToken);
-                var rankDiscount = loyaltyPreview.RankDiscountAmount;
-                var finalTotal = afterCoupon  - rankDiscount;
+                var rankDiscount = loyaltyPreview.RankDiscountAmount;//Receive the result of rank percentage. 
+                var finalTotal = afterCoupon - rankDiscount;
 
                 if(finalTotal < 0)
                 {

@@ -29,8 +29,17 @@ namespace Application.Features.Product.Queries.GetProductQuery
                 p.price,
                 p.stockQuantity,
                 p.categoryId,
-                p.category.categoryName
-            )).ToList();
+                p.category.categoryName,
+                p.variants.Where(v => !v.isDeleted)
+                          .Select(v => new VariantDTO(
+                                v.variantId,
+                                v.sku ?? string.Empty,
+                                v.size,
+                                v.color,
+                                v.material,
+                                v.price,
+                                v.inventory)).ToList()
+                )).ToList();
 
             return new PagedResult<ProductDTO>
             {

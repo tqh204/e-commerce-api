@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
-    <ProjectReference Include="..\Loyalty.Grpc\Loyalty.Grpc.csproj" />
   </ItemGroup>
 
 </Project>
