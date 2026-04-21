@@ -12,11 +12,17 @@ namespace Application.Features.Coupon.Commands
     {
         private readonly ICartRepository _cartRepository;
         private readonly ICouponRepository _couponRepository;
+        private readonly IPricingEngine _pricingEngine;
         private readonly IUnitOfWork _unitOfWork;
-        public ApplyCouponCommandHandler(ICartRepository cartRepository, ICouponRepository couponRepository, IUnitOfWork unitOfWork)
+        public ApplyCouponCommandHandler(
+            ICartRepository cartRepository,
+            ICouponRepository couponRepository,
+            IPricingEngine pricingEngine,
+            IUnitOfWork unitOfWork)
         {
             _cartRepository = cartRepository;
             _couponRepository = couponRepository;
+            _pricingEngine = pricingEngine;
             _unitOfWork = unitOfWork;
         }
         public async Task<Result<bool>> Handle(ApplyCouponCommand request, CancellationToken cancellationToken)
@@ -54,15 +60,21 @@ namespace Application.Features.Coupon.Commands
             }
 
             var subTotal = cart.items.Sum(i => i.unitPrice * i.quantity);
-
-            if(subTotal < code.minOrderValue)
+            var promotionResult = await _pricingEngine.CalculatePromotionAsync(cart.items.ToList(), DateTime.UtcNow, cancellationToken);
+            var afterPromotion = subTotal - promotionResult.discountAmount;
+            if (afterPromotion < 0)
             {
-                return Result<bool>.Failure("Code chưa đạt đủ điều kiện để sử dụng");
+                afterPromotion = 0;
+            }
+
+            if(afterPromotion < code.minOrderValue)
+            {
+                return Result<bool>.Failure("Code chưa đạt đủ điều kiện sau khi áp dụng khuyến mãi hệ thống");
             }
             decimal discountAmount;
             if (code.discountType == DiscountType.Percentage)
             {
-                 discountAmount = subTotal * code.value / 100;
+                 discountAmount = afterPromotion * code.value / 100;
             }
             else if(code.discountType == DiscountType.FixedAmount)
             {
@@ -73,9 +85,9 @@ namespace Application.Features.Coupon.Commands
                 return Result<bool>.Failure("Kiểu discount không hợp lệ");
             }
 
-            if(discountAmount > subTotal)
+            if(discountAmount > afterPromotion)
             {
-                discountAmount = subTotal;
+                discountAmount = afterPromotion;
             }
 
             cart.couponId = code.couponId;

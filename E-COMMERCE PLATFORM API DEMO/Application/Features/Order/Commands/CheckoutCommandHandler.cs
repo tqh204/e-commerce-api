@@ -14,14 +14,23 @@ namespace Application.Features.Order.Commands
         private readonly ICartRepository _cartRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICouponRepository _couponRepository;
+        private readonly IPricingEngine _pricingEngine;
         private readonly ILoyaltyClient _loyaltyClient;
         private readonly IUserRepository _userRepository;
-        public CheckoutCommandHandler(IOrderRepository orderRepository, ICartRepository cartRepository, IUnitOfWork unitOfWork, ICouponRepository couponRepository, ILoyaltyClient loyaltyClient, IUserRepository userRepository)
+        public CheckoutCommandHandler(
+            IOrderRepository orderRepository,
+            ICartRepository cartRepository,
+            IUnitOfWork unitOfWork,
+            ICouponRepository couponRepository,
+            IPricingEngine pricingEngine,
+            ILoyaltyClient loyaltyClient,
+            IUserRepository userRepository)
         {
             _orderRepository = orderRepository;
             _cartRepository = cartRepository;
             _unitOfWork = unitOfWork;
             _couponRepository = couponRepository;
+            _pricingEngine = pricingEngine;
             _loyaltyClient = loyaltyClient;
             _userRepository = userRepository;
         }
@@ -52,8 +61,16 @@ namespace Application.Features.Order.Commands
                 }
 
                 Domain.Entities.Coupon? coupon = null;
-                decimal discount = 0;
+                decimal couponDiscount = 0;
                 var subTotal = cart.items.Sum(x => x.unitPrice * x.quantity);
+                var promotionResult = await _pricingEngine.CalculatePromotionAsync(cart.items.ToList(), DateTime.UtcNow, cancellationToken);
+                var promotionDiscount = promotionResult.discountAmount;
+                var afterPromotion = subTotal - promotionDiscount;
+                if (afterPromotion < 0)
+                {
+                    afterPromotion = 0;
+                }
+
                 if(cart.couponId.HasValue)
                 {
                     coupon = await _couponRepository.GetCouponByIdAsync(cart.couponId.Value);
@@ -88,20 +105,22 @@ namespace Application.Features.Order.Commands
                         return Result<Guid>.Failure("Code đã hết lượt sử dụng");
                     }
 
-                    if(subTotal < coupon.minOrderValue)
+                    if(afterPromotion < coupon.minOrderValue)
                     {
                         await _unitOfWork.RollbackTransactionAsync(cancellationToken);
                         return Result<Guid>.Failure("Chưa đủ điều kiện để sử dụng");
                     }
 
-                    discount = cart.discountAmount;
-                    if(discount > subTotal)
+                    couponDiscount = coupon.discountType switch
                     {
-                        discount = subTotal;
-                    }
+                        DiscountType.Percentage => afterPromotion * (coupon.value / 100m),
+                        DiscountType.FixedAmount => coupon.value,
+                        _ => 0
+                    };
+                    couponDiscount = Math.Max(0, Math.Min(couponDiscount, afterPromotion));
                 }
 
-                var afterCoupon = subTotal - discount;//after checking a lot of rules to avoid the problem, we will calculate the price after discount of coupon, and then we will check the loyalty point of user to calculate the rank discount of user
+                var afterCoupon = afterPromotion - couponDiscount;//after checking a lot of rules to avoid the problem, we will calculate the price after discount of coupon, and then we will check the loyalty point of user to calculate the rank discount of user
                 if (afterCoupon < 0)
                 {
                     afterCoupon = 0;//If the price after discount of coupon < 0, we will set it to 0 to avoid the problem of negative price

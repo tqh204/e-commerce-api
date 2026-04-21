@@ -10,8 +10,13 @@ namespace Application.Features.Cart.Queries
     public class GetCartQueryHandler : IRequestHandler<GetCartQuery, Result<CartDTO>>
     {
         private readonly ICartRepository _cartRepository;
+        private readonly IPricingEngine _pricingEngine;
 
-        public GetCartQueryHandler(ICartRepository cartRepository) => _cartRepository = cartRepository;
+        public GetCartQueryHandler(ICartRepository cartRepository, IPricingEngine pricingEngine)
+        {
+            _cartRepository = cartRepository;
+            _pricingEngine = pricingEngine;
+        }
 
 
         public async Task<Result<CartDTO>> Handle(GetCartQuery request, CancellationToken cancellationToken)
@@ -24,7 +29,9 @@ namespace Application.Features.Cart.Queries
                     request.userId,
                     new List<CartItemDTO>(),
                     0,
+                    0,
                     null,
+                    0,
                     0,
                     0
                     );
@@ -40,8 +47,14 @@ namespace Application.Features.Cart.Queries
 
             var totalAmount = items.Sum(item => item.lineTotal);//This is a sum amount of cart
 
-            var discountAmount = cart.discountAmount;
-            var finalAmount = totalAmount - discountAmount;
+            var promotionResult = await _pricingEngine.CalculatePromotionAsync(cart.items.ToList(), DateTime.UtcNow, cancellationToken);
+            var promotionDiscountAmount = Math.Max(0, Math.Min(promotionResult.discountAmount, totalAmount));
+            var afterPromotion = totalAmount - promotionDiscountAmount;
+
+            var couponDiscountAmount = Math.Max(0, Math.Min(cart.discountAmount, afterPromotion));
+            var discountAmount = couponDiscountAmount; // backward-compatible alias
+
+            var finalAmount = afterPromotion - couponDiscountAmount;
             if(finalAmount < 0)
             {
                 finalAmount = 0;
@@ -51,7 +64,9 @@ namespace Application.Features.Cart.Queries
                 cart.userId,
                 items,
                 totalAmount,
+                promotionDiscountAmount,
                 cart.couponCode,
+                couponDiscountAmount,
                 discountAmount,
                 finalAmount);
             return Result<CartDTO>.Success(cartDTO);
