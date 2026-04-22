@@ -18,8 +18,9 @@ namespace WebAPI.Endpoints
             group.MapPost("/add", async (
                 AddToCartRequest request,
                 ClaimsPrincipal user,
-                IMediator mediator,
-                IValidator<AddToCartCommand> validator) =>
+                IMediator mediator
+                // IValidator<AddToCartCommand> validator
+                ) =>
             {
                 var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value; //Take the userId from accessToken when user login
 
@@ -35,12 +36,12 @@ namespace WebAPI.Endpoints
                     request.productId, //Get request from body
                     request.quantity);//same above
 
-                var validationResult = await validator.ValidateAsync(command); //Checking the command whether its valid?
+                // var validationResult = await validator.ValidateAsync(command); //Checking the command whether its valid?
 
-                if(!validationResult.IsValid)//If the result is not valid => Cannot get through Validator
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
+                // if(!validationResult.IsValid)//If the result is not valid => Cannot get through Validator
+                // {
+                //     return Results.ValidationProblem(validationResult.ToDictionary());
+                // }
 
                 var result = await mediator.Send(command);//If the result is valid and get through validation, throw to mediator and the mediator to use the handle to resolve it.
 
@@ -77,8 +78,9 @@ namespace WebAPI.Endpoints
                 Guid cartItemId,
                 UpdateCartItemRequest request,
                 ClaimsPrincipal user,
-                IMediator mediator,
-                IValidator<UpdateCartItemCommand> validator) =>
+                IMediator mediator
+                // IValidator<UpdateCartItemCommand> validator
+                ) =>
             {
                 var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -94,12 +96,12 @@ namespace WebAPI.Endpoints
                     cartItemId,
                     request.quantity);
 
-                var validationResult = await validator.ValidateAsync(command);//checking command is vaid?
+                // var validationResult = await validator.ValidateAsync(command);//checking command is vaid?
 
-                if(!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
+                // if(!validationResult.IsValid)
+                // {
+                //     return Results.ValidationProblem(validationResult.ToDictionary());
+                // }
 
                 var result = await mediator.Send(command);//if command is valid, put it into media to send handler
                 if (!result.IsSuccess)
@@ -112,8 +114,9 @@ namespace WebAPI.Endpoints
             group.MapPost("/apply-coupon", async (
                 RequestApplyCode request,
                 ClaimsPrincipal user,
-                IMediator mediator,
-                IValidator<ApplyCouponCommand> validator) =>
+                IMediator mediator
+                // IValidator<ApplyCouponCommand> validator
+                ) =>
             {
                 var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdValue))
@@ -125,11 +128,11 @@ namespace WebAPI.Endpoints
                 var command = new ApplyCouponCommand(
                     userId,
                     request.code);
-                var validationResult = await validator.ValidateAsync(command);
-                if (!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
+                // var validationResult = await validator.ValidateAsync(command);
+                // if (!validationResult.IsValid)
+                // {
+                //     return Results.ValidationProblem(validationResult.ToDictionary());
+                // }
 
                 var result = await mediator.Send(command);
                 if (!result.IsSuccess)

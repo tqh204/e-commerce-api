@@ -16,7 +16,7 @@ namespace WebAPI.Endpoints
             var group = app.MapGroup("/api/v1/products");
             group.MapGet("/", async (
                 IMediator mediator,
-                IValidator < GetProductQuery > validator,
+                //IValidator < GetProductQuery > validator,
                 int page = 1,
                 int size = 10,
                 int? categoryId = null,
@@ -25,27 +25,27 @@ namespace WebAPI.Endpoints
                 {
                     var query = new GetProductQuery(page, size, categoryId, minPrice, maxPrice);//create a query string contain parameters with page = page present, size = amount product each page, filter by categoryId, filter with minPrice or maxPrice or range between min and max
 
-                    var validationResult = await validator.ValidateAsync(query);
-                    if (!validationResult.IsValid)
-                    {
-                        return Results.ValidationProblem(validationResult.ToDictionary());
-                    }
+                    //var validationResult = await validator.ValidateAsync(query);
+                    //if (!validationResult.IsValid)
+                    //{
+                    //    return Results.ValidationProblem(validationResult.ToDictionary());
+                    //}
                     var result = await mediator.Send(query);
                     return Results.Ok(result);
                 });
 
             group.MapGet("/{productId:guid}", async (
                 IMediator mediator,
-                IValidator<GetProductByIdQuery> Validator,
+                // IValidator<GetProductByIdQuery> Validator,
                 Guid productId) =>
             {
                 var query = new GetProductByIdQuery(productId);
 
-                var validationResult = await Validator.ValidateAsync(query);
-                if (!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
+                // var validationResult = await Validator.ValidateAsync(query);
+                // if (!validationResult.IsValid)
+                // {
+                //     return Results.ValidationProblem(validationResult.ToDictionary());
+                // }
                 var result = await mediator.Send(query);
 
                 if (!result.IsSuccess)

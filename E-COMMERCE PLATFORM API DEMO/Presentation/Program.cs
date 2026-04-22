@@ -1,19 +1,21 @@
+using Application.Common.Behaviors;
+using Application.Common.Pricing;
 using Application.Features.Auth.Commands.Login;
 using Application.Features.Auth.Commands.Register;
 using Application.Interfaces;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
 using Loyalty.Grpc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Presentation.Endpoints;
-using Infrastructure.Services;
+using Presentation.Extensions;
 using System.Text;
 using WebAPI.Endpoints;
 using WebAPI.Extensions;
-using Application.Common.Pricing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,11 +39,15 @@ builder.Services.AddScoped<IVariantRepository, VariantRepository>();
 builder.Services.AddScoped<IPromotionRuleRepository, PromotionRuleRepository>();
 builder.Services.AddScoped<IPricingEngine, PricingEngine>();
 
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
-builder.Services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);// Đăng ký FluentValidation
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly);// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+});
+    builder.Services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);// Đăng ký FluentValidation
 
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(LoginCommand).Assembly));// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
-builder.Services.AddValidatorsFromAssembly(typeof(LoginCommand).Assembly);// Đăng ký FluentValidation
+//builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(LoginCommand).Assembly));// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
+//builder.Services.AddValidatorsFromAssembly(typeof(LoginCommand).Assembly);// Đăng ký FluentValidation
 
 builder.Services.AddGrpcClient<LoyaltyService.LoyaltyServiceClient>(options =>
 {
@@ -53,7 +59,7 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 Application.Common.MapsterConfig.Register();
 
 var app = builder.Build();
-
+app.UseValidationExceptionHandler();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

@@ -13,14 +13,15 @@ namespace WebAPI.Endpoints
 
             group.MapPost("/", async (
                 CreatePromotionRuleCommand command,
-                IMediator mediator,
-                IValidator<CreatePromotionRuleCommand> validator) =>
+                IMediator mediator
+                // IValidator<CreatePromotionRuleCommand> validator
+                ) =>
             {
-                var validationResult = await validator.ValidateAsync(command);
-                if (!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
+                // var validationResult = await validator.ValidateAsync(command);
+                // if (!validationResult.IsValid)
+                // {
+                //     return Results.ValidationProblem(validationResult.ToDictionary());
+                // }
 
                 var result = await mediator.Send(command);
                 if (!result.IsSuccess)
@@ -34,15 +35,16 @@ namespace WebAPI.Endpoints
             group.MapPut("/{ruleId:guid}", async (
                 Guid ruleId,
                 UpdatePromotionRuleCommand command,
-                IMediator mediator,
-                IValidator<UpdatePromotionRuleCommand> validator) =>
+                IMediator mediator
+                // IValidator<UpdatePromotionRuleCommand> validator
+                ) =>
             {
                 var updateCommand = command with { ruleId = ruleId };
-                var validationResult = await validator.ValidateAsync(updateCommand);
-                if (!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
+                // var validationResult = await validator.ValidateAsync(updateCommand);
+                // if (!validationResult.IsValid)
+                // {
+                //     return Results.ValidationProblem(validationResult.ToDictionary());
+                // }
 
                 var result = await mediator.Send(updateCommand);
                 if (!result.IsSuccess)
@@ -55,15 +57,16 @@ namespace WebAPI.Endpoints
 
             group.MapDelete("/{ruleId:guid}", async (
                 Guid ruleId,
-                IMediator mediator,
-                IValidator<DeletePromotionRuleCommand> validator) =>
+                IMediator mediator
+                // IValidator<DeletePromotionRuleCommand> validator
+                ) =>
             {
                 var command = new DeletePromotionRuleCommand(ruleId);
-                var validationResult = await validator.ValidateAsync(command);
-                if (!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
+                // var validationResult = await validator.ValidateAsync(command);
+                // if (!validationResult.IsValid)
+                // {
+                //     return Results.ValidationProblem(validationResult.ToDictionary());
+                // }
 
                 var result = await mediator.Send(command);
                 if (!result.IsSuccess)

@@ -14,15 +14,16 @@ namespace Presentation.Endpoints
 
             group.MapPost("/register", async (
                 RegisterUserCommand command,
-                IMediator mediator,
-                IValidator<RegisterUserCommand> validator) =>
+                IMediator mediator
+                //IValidator<RegisterUserCommand> validator
+                ) =>
             {
                 //Implement validate input
-                var validationResult = await validator.ValidateAsync(command);
-                if (!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
+                //var validationResult = await validator.ValidateAsync(command);
+                //if (!validationResult.IsValid)
+                //{
+                //    return Results.ValidationProblem(validationResult.ToDictionary());
+                //}
 
                 var userId = await mediator.Send(command);
 
