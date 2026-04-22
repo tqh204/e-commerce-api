@@ -1,9 +1,9 @@
-using Application.Features.Pricing.Common;
+using Application.Common.Pricing;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 
-namespace Application.Features.Pricing
+namespace Application.Common.Pricing
 {
     public class PricingEngine : IPricingEngine
     {
@@ -14,38 +14,30 @@ namespace Application.Features.Pricing
             _promotionRuleRepository = promotionRuleRepository;
         }
 
-        public async Task<PricingResult> CalculatePromotionAsync(
-            IReadOnlyList<CartItem> items,
-            DateTime now,
-            CancellationToken cancellationToken = default)
+        public async Task<PricingResult> CalculatePromotionAsync(IReadOnlyList<CartItem> items, DateTime now, CancellationToken cancellationToken = default)
         {
-            if (items == null || items.Count == 0)
+            if (items == null || items.Count == 0)//Check if items is null or empty
             {
                 return new PricingResult();
             }
 
-            var activeRules = await _promotionRuleRepository.GetActiveRulesAsync(now);
-            if (activeRules.Count == 0)
+            var activeRules = await _promotionRuleRepository.GetActiveRulesAsync(now);//Taking all rules that are active
+            if (activeRules.Count == 0)//Check if there are any active rules
             {
                 return new PricingResult();
             }
 
-            var cartSubTotal = items.Sum(i => i.unitPrice * i.quantity);
-            if (cartSubTotal <= 0)
+            var cartSubTotal = items.Sum(i => i.unitPrice * i.quantity);//Calculating the total price of the items
+            if (cartSubTotal <= 0)//Check if the total price is greater than 0
             {
                 return new PricingResult();
             }
 
-            var evaluated = activeRules
-                .Select(rule => new
+            var evaluated = activeRules.Select(rule => new//Starting a loop to check whether any rule is applicable
                 {
                     rule,
                     discount = CalculateRuleDiscount(rule, items, cartSubTotal)
-                })
-                .Where(x => x.discount > 0)
-                .OrderByDescending(x => x.discount)
-                .ThenBy(x => x.rule.priority)
-                .FirstOrDefault();
+                }).Where(x => x.discount > 0).OrderByDescending(x => x.discount).ThenBy(x => x.rule.priority).FirstOrDefault();
 
             if (evaluated == null)
             {
@@ -64,7 +56,7 @@ namespace Application.Features.Pricing
 
         private decimal CalculateRuleDiscount(PromotionRule rule, IReadOnlyList<CartItem> items, decimal cartSubTotal)
         {
-            if (rule.condition.minOrderValue.HasValue && cartSubTotal < rule.condition.minOrderValue.Value)
+            if (rule.minOrderValue.HasValue && cartSubTotal < rule.minOrderValue.Value)
             {
                 return 0;
             }
@@ -76,9 +68,9 @@ namespace Application.Features.Pricing
                 _ => 0
             };
 
-            if (rule.benefit.maxDiscountAmount.HasValue)
+            if (rule.maxDiscountAmount.HasValue)
             {
-                discount = Math.Min(discount, rule.benefit.maxDiscountAmount.Value);
+                discount = Math.Min(discount, rule.maxDiscountAmount.Value);
             }
 
             discount = Math.Max(0, discount);
@@ -88,27 +80,27 @@ namespace Application.Features.Pricing
 
         private decimal CalculateBuyXGetYDiscount(PromotionRule rule, IReadOnlyList<CartItem> items)
         {
-            if (!rule.condition.buyProductId.HasValue || !rule.condition.getProductId.HasValue ||
-                !rule.condition.buyQuantity.HasValue || !rule.condition.getQuantity.HasValue)
+            if (!rule.buyProductId.HasValue || !rule.getProductId.HasValue ||
+                !rule.buyQuantity.HasValue || !rule.getQuantity.HasValue)
             {
                 return 0;
             }
 
-            if (rule.condition.buyQuantity.Value <= 0 || rule.condition.getQuantity.Value <= 0)
+            if (rule.buyQuantity.Value <= 0 || rule.getQuantity.Value <= 0)
             {
                 return 0;
             }
 
-            var buyItem = items.FirstOrDefault(i => i.productId == rule.condition.buyProductId.Value);
-            var getItem = items.FirstOrDefault(i => i.productId == rule.condition.getProductId.Value);
+            var buyItem = items.FirstOrDefault(i => i.productId == rule.buyProductId.Value);
+            var getItem = items.FirstOrDefault(i => i.productId == rule.getProductId.Value);
 
             if (buyItem == null || getItem == null)
             {
                 return 0;
             }
 
-            var buyTimes = buyItem.quantity / rule.condition.buyQuantity.Value;
-            var getTimes = getItem.quantity / rule.condition.getQuantity.Value;
+            var buyTimes = buyItem.quantity / rule.buyQuantity.Value;
+            var getTimes = getItem.quantity / rule.getQuantity.Value;
             var applyTimes = Math.Min(buyTimes, getTimes);
 
             if (applyTimes <= 0)
@@ -116,26 +108,26 @@ namespace Application.Features.Pricing
                 return 0;
             }
 
-            var freeUnits = applyTimes * rule.condition.getQuantity.Value;
+            var freeUnits = applyTimes * rule.getQuantity.Value;
             var discountBase = freeUnits * getItem.unitPrice;
 
-            return rule.benefit.discountType switch
+            return rule.discountType switch
             {
-                DiscountType.Percentage => discountBase * (rule.benefit.value / 100m),
-                DiscountType.FixedAmount => Math.Min(rule.benefit.value, discountBase),
+                DiscountType.Percentage => discountBase * (rule.value / 100m),
+                DiscountType.FixedAmount => Math.Min(rule.value, discountBase),
                 _ => 0
             };
         }
 
         private decimal CalculateCategoryDiscount(PromotionRule rule, IReadOnlyList<CartItem> items)
         {
-            if (!rule.condition.targetCategoryId.HasValue)
+            if (!rule.targetCategoryId.HasValue)
             {
                 return 0;
             }
 
             var categoryTotal = items
-                .Where(i => i.product != null && i.product.categoryId == rule.condition.targetCategoryId.Value)
+                .Where(i => i.product != null && i.product.categoryId == rule.targetCategoryId.Value)
                 .Sum(i => i.unitPrice * i.quantity);
 
             if (categoryTotal <= 0)
@@ -143,10 +135,10 @@ namespace Application.Features.Pricing
                 return 0;
             }
 
-            return rule.benefit.discountType switch
+            return rule.discountType switch
             {
-                DiscountType.Percentage => categoryTotal * (rule.benefit.value / 100m),
-                DiscountType.FixedAmount => Math.Min(rule.benefit.value, categoryTotal),
+                DiscountType.Percentage => categoryTotal * (rule.value / 100m),
+                DiscountType.FixedAmount => Math.Min(rule.value, categoryTotal),
                 _ => 0
             };
         }

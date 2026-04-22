@@ -1,9 +1,10 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Cart.Commands
 {
@@ -21,12 +22,12 @@ namespace Application.Features.Cart.Commands
             var cartItem = await _cartRepository.GetCartItemByIdAsync(request.cartItemId);//Searching cartItem by cartItemId
             if(cartItem == null)//Not found
             {
-                return Result<bool>.Failure("Không tìm thấy sản phẩm trong dỏ hàng nho~~");
+                return Result<bool>.Failure("Kh�ng t�m th?y s?n ph?m trong d? h�ng nho~~");
             }
 
             if(cartItem == null || cartItem?.cart?.userId != request.userId)//notfound or dont have permission to get into another cart's user
             {
-                return Result<bool>.Failure("Bạn không có quyền cập nhật sản phẩm nì nho~~");
+                return Result<bool>.Failure("B?n kh�ng c� quy?n c?p nh?t s?n ph?m n� nho~~");
             }
 
             if(request.quantity == 0)//Setting if in cart, itemCart quantity = 0 => remove it out of cart
@@ -44,12 +45,12 @@ namespace Application.Features.Cart.Commands
 
             if(cartItem.product == null)//Make sure the product is still existing in cart in case quantity > 0
             {
-                return Result<bool>.Failure("Không tìm thấy sản phẩm");
+                return Result<bool>.Failure("Kh�ng t�m th?y s?n ph?m");
             }
 
             if(cartItem.product.stockQuantity < request.quantity)//Compared between quantity in DB and newQuantity from user
             {
-                return Result<bool>.Failure("Số lượng trong kho không đủ");
+                return Result<bool>.Failure("S? lu?ng trong kho kh�ng d?");
             }
 
             cartItem.quantity = request.quantity;
@@ -67,3 +68,4 @@ namespace Application.Features.Cart.Commands
         }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using Application.Features.Product.Queries.GetProductQuery;
+using Application.Features.Product.Queries.GetProductQuery;
 using Domain.Entities;
 using Application.Interfaces;
 using MediatR;
@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Product.Queries.GetProductByIdQuery
 {
@@ -20,7 +21,7 @@ namespace Application.Features.Product.Queries.GetProductByIdQuery
 
             if (product == null)    
             {
-                return Result<ProductDTO>.Failure("Không tìm thấy sản phẩm");
+                return Result<ProductDTO>.Failure("Kh�ng t�m th?y s?n ph?m");
             }
 
             var productDTO = new ProductDTO(
@@ -47,3 +48,4 @@ namespace Application.Features.Product.Queries.GetProductByIdQuery
         }
     }
 }
+

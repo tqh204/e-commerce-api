@@ -1,9 +1,10 @@
-ï»¿using Domain.Entities;
+using Domain.Entities;
 using Application.Interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Product.Commands
 {
@@ -24,13 +25,13 @@ namespace Application.Features.Product.Commands
             var product = await _productRepository.GetProductByIdAsync(request.productId);
             if(product == null)
             {
-                return Result<bool>.Failure("KhÃ´ng tÃ¬m tháº¥y product");
+                return Result<bool>.Failure("Không tìm th?y product");
             }
 
             var categoryExists = await _categoryRepository.IsCategoryExsits(request.categoryId);
             if(!categoryExists)
             {
-                return Result<bool>.Failure("KhÃ´ng tÃ¬m tháº¥y category");
+                return Result<bool>.Failure("Không tìm th?y category");
             }
 
             product.productName = request.productName;
@@ -47,3 +48,4 @@ namespace Application.Features.Product.Commands
         }
     }
 }
+

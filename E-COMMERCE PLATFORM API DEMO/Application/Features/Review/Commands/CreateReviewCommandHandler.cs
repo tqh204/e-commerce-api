@@ -1,9 +1,10 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Review.Commands
 {
@@ -20,17 +21,17 @@ namespace Application.Features.Review.Commands
         {
             
             if (request.rating < 1 || request.rating > 5)
-                return Result<Guid>.Failure("Rating phải từ 1 đến 5 sao");
+                return Result<Guid>.Failure("Rating ph?i t? 1 d?n 5 sao");
             
             var hasPurchased = await _reviewRepository.HasCompletedOrderWithProductAsync(
                 request.userId, request.productId);
             if (!hasPurchased)
-                return Result<Guid>.Failure("Bạn chỉ có thể đánh giá sản phẩm đã mua và nhận hàng thành công");
+                return Result<Guid>.Failure("B?n ch? c� th? d�nh gi� s?n ph?m d� mua v� nh?n h�ng th�nh c�ng");
             
             var alreadyReviewed = await _reviewRepository.HasAlreadyReviewedAsync(
                 request.userId, request.productId);
             if (alreadyReviewed)
-                return Result<Guid>.Failure("Bạn đã đánh giá sản phẩm này rồi");
+                return Result<Guid>.Failure("B?n d� d�nh gi� s?n ph?m n�y r?i");
             
             var review = new Domain.Entities.Review
             {
@@ -47,3 +48,4 @@ namespace Application.Features.Review.Commands
         }
     }
 }
+

@@ -1,9 +1,10 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Application.Interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Product.Commands
 {
@@ -22,7 +23,7 @@ namespace Application.Features.Product.Commands
             var product = await _productRepository.GetProductByIdAsync(request.productId);
             if (product == null)
             {
-                return Result<bool>.Failure("Không tìm thấy product để xóa");
+                return Result<bool>.Failure("Kh�ng t�m th?y product d? x�a");
             }
 
              _productRepository.SoftDelete(product);
@@ -31,3 +32,4 @@ namespace Application.Features.Product.Commands
         }
     }
 }
+

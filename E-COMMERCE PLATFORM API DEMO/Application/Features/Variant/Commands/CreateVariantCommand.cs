@@ -1,8 +1,9 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Variant.Commands
 {
@@ -15,3 +16,4 @@ namespace Application.Features.Variant.Commands
     decimal price,
     int inventory) : IRequest<Result<Guid>>;
 }
+

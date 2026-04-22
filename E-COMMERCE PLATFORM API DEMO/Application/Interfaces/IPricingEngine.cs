@@ -1,4 +1,4 @@
-using Application.Features.Pricing.Common;
+using Application.Common.Pricing;
 using Domain.Entities;
 
 namespace Application.Interfaces

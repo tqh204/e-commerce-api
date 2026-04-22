@@ -1,9 +1,10 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Variant.Commands
 {
@@ -25,13 +26,14 @@ namespace Application.Features.Variant.Commands
         {
             var variant = await _variantRepository.GetByIdAsync(request.variantId);
             if (variant == null)
-                return Result<bool>.Failure("Không tìm thấy biến thể.");
+                return Result<bool>.Failure("Kh�ng t�m th?y bi?n th?.");
             var product = await _productRepository.GetProductByIdAsync(variant.productId);
             if (product == null)
-                return Result<bool>.Failure("Không tìm thấy sản phẩm.");
+                return Result<bool>.Failure("Kh�ng t�m th?y s?n ph?m.");
             var nextProductStock = product.stockQuantity - variant.inventory;
             if (nextProductStock < 0)
-                return Result<bool>.Failure("Tổng tồn kho sản phẩm không hợp lệ.");
+                return Result<bool>.Failure("T?ng t?n kho s?n ph?m kh�ng h?p l?.");
+            product.stockQuantity = nextProductStock;
             product.updatedAt = DateTime.UtcNow;
             _variantRepository.SoftDelete(variant);
             _productRepository.Update(product);
@@ -40,3 +42,4 @@ namespace Application.Features.Variant.Commands
         }
     }
 }
+

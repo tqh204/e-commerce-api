@@ -1,9 +1,10 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 namespace Application.Features.Variant.Commands
 {
     public class UpdateVariantCommandHandler : IRequestHandler<UpdateVariantCommand, Result<bool>>
@@ -24,17 +25,17 @@ namespace Application.Features.Variant.Commands
         {
             var variant = await _variantRepository.GetByIdAsync(request.variantId);
             if (variant == null)
-                return Result<bool>.Failure("Không tìm thấy biến thể.");
+                return Result<bool>.Failure("Kh�ng t�m th?y bi?n th?.");
             var duplicatedSku = await _variantRepository.ExistsSkuAsync(request.sku, request.variantId);
             if (duplicatedSku)
-                return Result<bool>.Failure("SKU đã tồn tại.");
+                return Result<bool>.Failure("SKU d� t?n t?i.");
             var product = await _productRepository.GetProductByIdAsync(variant.productId);
             if (product == null)
-                return Result<bool>.Failure("Không tìm thấy sản phẩm.");
+                return Result<bool>.Failure("Kh�ng t�m th?y s?n ph?m.");
             var allocatedExcludingCurrent = await _variantRepository.GetAllocatedInventoryAsync(variant.productId, variant.variantId);
 
             if (allocatedExcludingCurrent + request.inventory > product.stockQuantity)
-                return Result<bool>.Failure("Tổng tồn kho biến thể vượt quá stock của sản phẩm.");
+                return Result<bool>.Failure("T?ng t?n kho bi?n th? vu?t qu� stock c?a s?n ph?m.");
             var oldInventory = variant.inventory;
             var newInventory = request.inventory;
             variant.sku = request.sku.Trim();
@@ -53,3 +54,4 @@ namespace Application.Features.Variant.Commands
         }
     }
 }
+

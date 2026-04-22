@@ -1,9 +1,10 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Application.Interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Cart.Commands
 {
@@ -25,12 +26,12 @@ namespace Application.Features.Cart.Commands
 
             if(product == null)//Return null if product not found
             {
-                return Result<bool>.Failure("Không tìm thấy sản phẩm");
+                return Result<bool>.Failure("Kh�ng t�m th?y s?n ph?m");
             }
 
             if(product.stockQuantity < request.quantity)//return failif request > stock
             {
-                return Result<bool>.Failure("Số lượng trong kho không đủ");
+                return Result<bool>.Failure("S? lu?ng trong kho kh�ng d?");
             }
 
             var cart = await _cartRepository.GetByUserIdAsync(request.userId);//Finding the cart of user is active(login)
@@ -63,7 +64,7 @@ namespace Application.Features.Cart.Commands
                 var newQuantity = existingItem.quantity + request.quantity;
                 if(product.stockQuantity < newQuantity)//So add is not just an add function, its also a update or u could get it as "add more"
                 {
-                    return Result<bool>.Failure("SỐ lượng trong kho không đủ");//And when u add more but the stock could have not enough quantity(stock), it will be fail
+                    return Result<bool>.Failure("S? lu?ng trong kho kh�ng d?");//And when u add more but the stock could have not enough quantity(stock), it will be fail
                 }
                 existingItem.quantity = newQuantity;//if it got enough stock(quantity) => the present quantity(existing.quantity) = new quantity(newQuantity)
                 existingItem.updatedAt = DateTime.UtcNow;
@@ -91,3 +92,4 @@ namespace Application.Features.Cart.Commands
         }
     }
 }
+

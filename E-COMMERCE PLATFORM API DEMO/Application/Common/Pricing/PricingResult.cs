@@ -1,6 +1,6 @@
 using Domain.Enums;
 
-namespace Application.Features.Pricing.Common
+namespace Application.Common.Pricing
 {
     public class PricingResult
     {

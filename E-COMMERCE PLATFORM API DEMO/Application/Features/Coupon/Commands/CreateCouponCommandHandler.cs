@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Application.Interfaces;
 using Domain.Entities;
 using MediatR;
+using Application.Common.Results;
 namespace Application.Features.Coupon.Commands
 {
     public class CreateCouponCommandHandler : IRequestHandler<CreateCouponCommand, Result<Guid>>
@@ -21,23 +22,23 @@ namespace Application.Features.Coupon.Commands
             var couponCode = await _couponRepository.GetCodeAsync(normalizeCode);
             if(couponCode != null)
             {
-                return Result<Guid>.Failure("code đã tồn tại");
+                return Result<Guid>.Failure("code d� t?n t?i");
             }
 
             //var discount = request.discountType.Trim().ToUpper();
             //if(discount != "PERCENTAGE" && discount != "FIXED_AMOUNT")
             //{
-            //    return Result<Guid>.Failure("Kiểu discount không hợp lệ");
+            //    return Result<Guid>.Failure("Ki?u discount kh�ng h?p l?");
             //}
 
             if(request.value <= 0)
             {
-                return Result<Guid>.Failure("Value không được là 0 hoặc âm");
+                return Result<Guid>.Failure("Value kh�ng du?c l� 0 ho?c �m");
             }
 
             if(request.usageLimit <= 0)
             {
-                return Result<Guid>.Failure("Hãy ghi số lần sử dụng hợp lệ");
+                return Result<Guid>.Failure("H�y ghi s? l?n s? d?ng h?p l?");
             }
 
             var coupon = new Domain.Entities.Coupon
@@ -62,3 +63,4 @@ namespace Application.Features.Coupon.Commands
         }
     }
 }
+

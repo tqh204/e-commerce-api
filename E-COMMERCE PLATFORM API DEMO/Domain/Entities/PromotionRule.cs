@@ -15,7 +15,15 @@ namespace Domain.Entities
         public DateTime createdAt { get; set; } = DateTime.UtcNow;
         public DateTime? updatedAt { get; set; }
 
-        public PromotionRuleCondition condition { get; set; } = default!;
-        public PromotionRuleBenefit benefit { get; set; } = default!;
+        public Guid? buyProductId { get; set; }
+        public int? buyQuantity { get; set; }
+        public Guid? getProductId { get; set; }
+        public int? getQuantity { get; set; }
+        public int? targetCategoryId { get; set; }
+        public decimal? minOrderValue { get; set; }
+
+        public DiscountType discountType { get; set; }
+        public decimal value { get; set; }
+        public decimal? maxDiscountAmount { get; set; }
     }
 }

@@ -1,9 +1,10 @@
-﻿using Application.Features.Product.Queries.GetProductQuery;
+using Application.Features.Product.Queries.GetProductQuery;
 using Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 namespace Application.Features.Variant.Queries
 {
     public record GetProductVariantsQuery(
@@ -12,3 +13,4 @@ namespace Application.Features.Variant.Queries
         int size = 10
     ) : IRequest<PagedResult<VariantDTO>>;
 }
+

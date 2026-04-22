@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using Domain.Entities;
+using Application.Common.Results;
 
 namespace Application.Features.Auth.Commands.Login
 {

@@ -1,10 +1,11 @@
-﻿using Application.Features.Product.Queries.GetProductQuery;
+using Application.Features.Product.Queries.GetProductQuery;
 using Application.Interfaces;
 using Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Variant.Queries
 {
@@ -40,3 +41,4 @@ namespace Application.Features.Variant.Queries
         }
     }
 }
+

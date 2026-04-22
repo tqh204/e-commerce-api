@@ -1,9 +1,10 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Variant.Commands
 {
@@ -24,15 +25,15 @@ namespace Application.Features.Variant.Commands
         public async Task<Result<Guid>> Handle(CreateVariantCommand request, CancellationToken cancellationToken)
         {
             if (!await _variantRepository.ProductExistsAsync(request.productId))
-                return Result<Guid>.Failure("Sản phẩm không tồn tại.");
+                return Result<Guid>.Failure("S?n ph?m kh�ng t?n t?i.");
             if (await _variantRepository.ExistsSkuAsync(request.sku))
-                return Result<Guid>.Failure("SKU đã tồn tại.");
+                return Result<Guid>.Failure("SKU d� t?n t?i.");
             var product = await _productRepository.GetProductByIdAsync(request.productId);
             if (product == null)
-                return Result<Guid>.Failure("Không tìm thấy sản phẩm.");
+                return Result<Guid>.Failure("Kh�ng t�m th?y s?n ph?m.");
             var allocated = await _variantRepository.GetAllocatedInventoryAsync(request.productId);
             if (allocated + request.inventory > product.stockQuantity)
-                return Result<Guid>.Failure("Tổng tồn kho biến thể vượt quá stock của sản phẩm.");
+                return Result<Guid>.Failure("T?ng t?n kho bi?n th? vu?t qu� stock c?a s?n ph?m.");
             var variant = new Domain.Entities.Variant
             {
                 variantId = Guid.NewGuid(),
@@ -52,3 +53,4 @@ namespace Application.Features.Variant.Commands
         }
     }
 }
+

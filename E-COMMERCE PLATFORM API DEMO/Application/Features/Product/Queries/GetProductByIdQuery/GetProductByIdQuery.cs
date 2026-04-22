@@ -1,4 +1,5 @@
-﻿    using Application.Features.Product.Queries.GetProductQuery;
+using Application.Common.Results;
+    using Application.Features.Product.Queries.GetProductQuery;
 using Domain.Entities;
 using MediatR;
 using System;
@@ -11,3 +12,4 @@ namespace Application.Features.Product.Queries.GetProductByIdQuery
     
     
 }
+

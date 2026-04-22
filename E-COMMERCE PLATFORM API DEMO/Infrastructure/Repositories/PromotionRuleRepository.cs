@@ -14,27 +14,11 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<PromotionRule?> GetByIdAsync(Guid ruleId)
-        {
-            return await _context.PromotionRules
-                .Include(r => r.condition)
-                .Include(r => r.benefit)
-                .FirstOrDefaultAsync(r => !r.isDeleted && r.ruleId == ruleId);
-        }
+        public async Task<PromotionRule?> GetByIdAsync(Guid ruleId) => await _context.PromotionRules.FirstOrDefaultAsync(r => !r.isDeleted && r.ruleId == ruleId);//Lấy rule theo Id
 
-        public async Task<IReadOnlyList<PromotionRule>> GetActiveRulesAsync(DateTime now)
-        {
-            return await _context.PromotionRules
-                .Include(r => r.condition)
-                .Include(r => r.benefit)
-                .Where(r =>
-                    !r.isDeleted &&
-                    r.isActive &&
-                    r.startDate <= now &&
-                    r.endDate >= now)
-                .OrderBy(r => r.priority)
-                .ToListAsync();
-        }
+        public async Task<IReadOnlyList<PromotionRule>> GetActiveRulesAsync(DateTime now) => await _context.PromotionRules.Where(r => !r.isDeleted && r.isActive && r.startDate <= now && r.endDate >= now).OrderBy(r => r.priority).ToListAsync();//Check rule còn hoạt động và có tồn tại
+
+
 
         public async Task AddAsync(PromotionRule rule)
         {

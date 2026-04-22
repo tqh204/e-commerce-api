@@ -22,8 +22,6 @@ namespace Infrastructure.Data
         public DbSet<Review> Reviews { get; set;  }
         public DbSet<Variant> Variants { get; set; }
         public DbSet<PromotionRule> PromotionRules { get; set; }
-        public DbSet<PromotionRuleCondition> PromotionRuleConditions { get; set; }
-        public DbSet<PromotionRuleBenefit> PromotionRuleBenefits { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -261,41 +259,21 @@ namespace Infrastructure.Data
                 entity.Property(r => r.isDeleted)
                       .HasDefaultValue(false);
 
-                entity.HasIndex(r => new { r.isActive, r.isDeleted, r.startDate, r.endDate, r.priority });
-            });
-
-            modelBuilder.Entity<PromotionRuleCondition>(entity =>
-            {
-                entity.HasKey(c => c.conditionId);
-
-                entity.Property(c => c.minOrderValue)
-                      .HasColumnType("decimal(18,2)");
-
-                entity.HasOne(c => c.rule)
-                      .WithOne(r => r.condition)
-                      .HasForeignKey<PromotionRuleCondition>(c => c.ruleId)
-                      .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            modelBuilder.Entity<PromotionRuleBenefit>(entity =>
-            {
-                entity.HasKey(b => b.benefitId);
-
-                entity.Property(b => b.discountType)
+                entity.Property(r => r.discountType)
                       .HasConversion<string>()
                       .IsRequired()
                       .HasMaxLength(50);
 
-                entity.Property(b => b.value)
+                entity.Property(r => r.value)
                       .HasColumnType("decimal(18,2)");
 
-                entity.Property(b => b.maxDiscountAmount)
+                entity.Property(r => r.maxDiscountAmount)
                       .HasColumnType("decimal(18,2)");
 
-                entity.HasOne(b => b.rule)
-                      .WithOne(r => r.benefit)
-                      .HasForeignKey<PromotionRuleBenefit>(b => b.ruleId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(r => r.minOrderValue)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.HasIndex(r => new { r.isActive, r.isDeleted, r.startDate, r.endDate, r.priority });
             });
 
         }

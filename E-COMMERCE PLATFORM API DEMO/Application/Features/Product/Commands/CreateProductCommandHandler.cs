@@ -1,4 +1,4 @@
-﻿using Application.Features.Product.Queries.GetProductByIdQuery;
+using Application.Features.Product.Queries.GetProductByIdQuery;
 using Application.Features.Product.Queries.GetProductQuery;
 using Domain.Entities;
 using Application.Interfaces;
@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Product.Commands
 {
@@ -28,7 +29,7 @@ namespace Application.Features.Product.Commands
 
             if(!isExist)
             {
-                return Result<Guid>.Failure("Không tìm thấy danh mục hợp lệ");
+                return Result<Guid>.Failure("Kh�ng t�m th?y danh m?c h?p l?");
             }
 
             var product = new Domain.Entities.Product
@@ -50,3 +51,4 @@ namespace Application.Features.Product.Commands
         }
     }
 }
+

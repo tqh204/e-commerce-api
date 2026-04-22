@@ -13,6 +13,7 @@ using Infrastructure.Services;
 using System.Text;
 using WebAPI.Endpoints;
 using WebAPI.Extensions;
+using Application.Common.Pricing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,7 @@ builder.Services.AddScoped<ILoyaltyClient, GrpcLoyaltyClient>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IVariantRepository, VariantRepository>();
 builder.Services.AddScoped<IPromotionRuleRepository, PromotionRuleRepository>();
-builder.Services.AddScoped<IPricingEngine, Application.Features.Pricing.PricingEngine>();
+builder.Services.AddScoped<IPricingEngine, PricingEngine>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
 builder.Services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);// Đăng ký FluentValidation

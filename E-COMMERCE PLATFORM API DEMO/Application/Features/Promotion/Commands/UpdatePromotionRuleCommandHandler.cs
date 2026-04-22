@@ -43,16 +43,16 @@ namespace Application.Features.Promotion.Commands
             rule.endDate = request.endDate;
             rule.updatedAt = DateTime.UtcNow;
 
-            rule.condition.buyProductId = request.buyProductId;
-            rule.condition.buyQuantity = request.buyQuantity;
-            rule.condition.getProductId = request.getProductId;
-            rule.condition.getQuantity = request.getQuantity;
-            rule.condition.targetCategoryId = request.targetCategoryId;
-            rule.condition.minOrderValue = request.minOrderValue;
+            rule.buyProductId = request.buyProductId;
+            rule.buyQuantity = request.buyQuantity;
+            rule.getProductId = request.getProductId;
+            rule.getQuantity = request.getQuantity;
+            rule.targetCategoryId = request.targetCategoryId;
+            rule.minOrderValue = request.minOrderValue;
 
-            rule.benefit.discountType = request.discountType;
-            rule.benefit.value = request.value;
-            rule.benefit.maxDiscountAmount = request.maxDiscountAmount;
+            rule.discountType = request.discountType;
+            rule.value = request.value;
+            rule.maxDiscountAmount = request.maxDiscountAmount;
 
             _promotionRuleRepository.Update(rule);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

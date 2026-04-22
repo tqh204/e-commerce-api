@@ -1,9 +1,10 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Domain.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Application.Common.Results;
 
 namespace Application.Features.Coupon.Commands
 {
@@ -17,3 +18,4 @@ namespace Application.Features.Coupon.Commands
         int usageLimit
         ) : IRequest<Result<Guid>>;
 }
+

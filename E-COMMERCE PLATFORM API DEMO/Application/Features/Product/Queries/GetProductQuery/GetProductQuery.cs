@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using MediatR;
 using Domain.Entities;
+using Application.Common.Results;
 namespace Application.Features.Product.Queries.GetProductQuery
 {
     public record GetProductQuery(
@@ -14,3 +15,4 @@ namespace Application.Features.Product.Queries.GetProductQuery
     
     
 }
+
