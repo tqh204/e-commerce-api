@@ -75,7 +75,10 @@ namespace Application.Common.Lalamove.Service
                 };
 
                 shipment.provider = "LALAMOVE";
-                shipment.status = ShipmentStatus.OrderCreated;
+                shipment.status = MapShipmentStatus(
+                    providerOrder.status,
+                    eventType: null,
+                    fallbackStatus: ShipmentStatus.OrderCreated);
                 shipment.serviceType = quotation.serviceType;
                 shipment.fee = quotation.fee;
                 shipment.currency = quotation.currency;
@@ -188,16 +191,22 @@ namespace Application.Common.Lalamove.Service
                     return Result<bool>.Failure("Không tìm thấy shipment");
                 }
 
-                var providerStatus = root
-                    .GetProperty("data")
-                    .GetProperty("status")
-                    .GetString();
-
-                shipment.status = MapShipmentStatus(providerStatus);
-                shipment.lastWebhookPayload = rawPayload;
-                shipment.lastWebhookEvent = root.TryGetProperty("eventType", out var eventType)
-                    ? eventType.GetString()
+                var eventType = root.TryGetProperty("eventType", out var eventTypeElement)
+                    ? eventTypeElement.GetString()
                     : null;
+
+                var data = root.GetProperty("data");
+                var providerStatus = data.TryGetProperty("status", out var statusElement)
+                    ? statusElement.GetString()
+                    : null;
+
+                shipment.status = MapShipmentStatus(
+                    providerStatus,
+                    eventType,
+                    shipment.status);
+                shipment.driverId = ReadDriverId(data) ?? shipment.driverId;
+                shipment.lastWebhookPayload = rawPayload;
+                shipment.lastWebhookEvent = eventType;
                 shipment.lastWebhookAt = DateTime.UtcNow;
                 shipment.updatedAt = DateTime.UtcNow;
 
@@ -231,18 +240,43 @@ namespace Application.Common.Lalamove.Service
             }
         }
 
-        private static ShipmentStatus MapShipmentStatus(string? providerStatus)
+        private static ShipmentStatus MapShipmentStatus(
+            string? providerStatus,
+            string? eventType,
+            ShipmentStatus fallbackStatus)
         {
+            if (string.Equals(eventType, "DRIVER_ASSIGNED", StringComparison.OrdinalIgnoreCase))
+            {
+                return ShipmentStatus.DriverAssigned;
+            }
+
             return providerStatus?.ToUpperInvariant() switch
             {
-                "ASSIGNING_DRIVER" => ShipmentStatus.Pending,
+                "ASSIGNING_DRIVER" => ShipmentStatus.OrderCreated,
                 "ON_GOING" => ShipmentStatus.OnGoing,
                 "PICKED_UP" => ShipmentStatus.OnGoing,
                 "COMPLETED" => ShipmentStatus.Delivered,
                 "CANCELED" => ShipmentStatus.Cancelled,
+                "REJECTED" => ShipmentStatus.Failed,
                 "EXPIRED" => ShipmentStatus.Failed,
-                _ => ShipmentStatus.Pending
+                _ => fallbackStatus
             };
+        }
+
+        private static string? ReadDriverId(JsonElement data)
+        {
+            if (data.TryGetProperty("driverId", out var driverIdElement))
+            {
+                return driverIdElement.GetString();
+            }
+
+            if (data.TryGetProperty("driver", out var driverElement) &&
+                driverElement.TryGetProperty("driverId", out var nestedDriverIdElement))
+            {
+                return nestedDriverIdElement.GetString();
+            }
+
+            return null;
         }
     }
 }
