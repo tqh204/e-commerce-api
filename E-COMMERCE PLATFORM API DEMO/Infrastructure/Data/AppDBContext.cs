@@ -22,6 +22,9 @@ namespace Infrastructure.Data
         public DbSet<Review> Reviews { get; set;  }
         public DbSet<Variant> Variants { get; set; }
         public DbSet<PromotionRule> PromotionRules { get; set; }
+        public DbSet<Shipment> Shipments { get; set; }
+        public DbSet<ShipmentQuotation> ShipmentQuotations { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -275,6 +278,84 @@ namespace Infrastructure.Data
 
                 entity.HasIndex(r => new { r.isActive, r.isDeleted, r.startDate, r.endDate, r.priority });
             });
+
+            modelBuilder.Entity<Shipment>(entity =>
+            {
+                entity.HasKey(s => s.shipmentId);
+
+                entity.Property(s => s.provider)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(s => s.status)
+                      .HasConversion<string>()
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(s => s.serviceType)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(s => s.fee)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(s => s.currency)
+                      .IsRequired()
+                      .HasMaxLength(10);
+
+                entity.Property(s => s.codAmount)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.HasIndex(s => s.orderId).IsUnique();
+
+                entity.HasOne(s => s.order)
+                      .WithOne()
+                      .HasForeignKey<Shipment>(s => s.orderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ShipmentQuotation>(entity =>
+            {
+                entity.HasKey(q => q.shipmentQuotationId);
+
+                entity.Property(q => q.quotationId)
+                      .IsRequired();
+
+                entity.HasIndex(q => q.quotationId)
+                      .IsUnique();
+
+                entity.Property(q => q.fee)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(q => q.currency)
+                      .IsRequired()
+                      .HasMaxLength(10);
+
+                entity.Property(q => q.serviceType)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(q => q.pickupStopId)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(q => q.dropoffStopId)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(q => q.packageWeight)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(q => q.packageLength)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(q => q.packageWidth)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(q => q.packageHeight)
+                      .HasColumnType("decimal(18,2)");
+            });
+
 
         }
     }

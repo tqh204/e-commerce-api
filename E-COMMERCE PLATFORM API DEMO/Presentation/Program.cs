@@ -1,4 +1,6 @@
 using Application.Common.Behaviors;
+using Application.Common.Lalamove;
+using Application.Common.Lalamove.Service;
 using Application.Common.Pricing;
 using Application.Features.Auth.Commands.Login;
 using Application.Features.Auth.Commands.Register;
@@ -38,7 +40,10 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IVariantRepository, VariantRepository>();
 builder.Services.AddScoped<IPromotionRuleRepository, PromotionRuleRepository>();
 builder.Services.AddScoped<IPricingEngine, PricingEngine>();
-
+builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
+builder.Services.AddScoped<IShipmentQuotationRepository, ShipmentQuotationRepository>();
+builder.Services.AddScoped<IShipmentService, ShipmentService>();
+    
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly);// Đăng ký MediatR là nó sẽ quét toàn bộ Handler trong project Application
@@ -55,6 +60,18 @@ builder.Services.AddGrpcClient<LoyaltyService.LoyaltyServiceClient>(options =>
 });
 
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+builder.Services.Configure<LalamoveOptions>(
+    builder.Configuration.GetSection("Lalamove"));
+
+builder.Services.AddHttpClient<ILalamoveClient, LalamoveClient>((sp, client) =>
+{
+    var options = sp.GetRequiredService<
+        Microsoft.Extensions.Options.IOptions<LalamoveOptions>>().Value;
+
+    client.BaseAddress = new Uri(options.BaseUrl);
+});
+
 
 Application.Common.MapsterConfig.Register();
 
@@ -77,4 +94,5 @@ app.MapCouponEndpoints();
 app.MapReviewEndpoints();
 app.MapVariantEndpoints();
 app.MapPromotionEndpoints();
+app.MapShippingEndpoints();
 app.Run();

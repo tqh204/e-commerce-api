@@ -10,8 +10,16 @@
 *.userosscache
 *.sln.docstates
 *.env
+.env.*
 *.vs
 *.dotnet
+E-COMMERCE PLATFORM API DEMO/Presentation/appsettings.json
+E-COMMERCE PLATFORM API DEMO/Presentation/appsettings.Development.json
+E-COMMERCE PLATFORM API DEMO/Presentation/appsettings.Local.json
+E-COMMERCE PLATFORM API DEMO/Presentation/appsettings.*.local.json
+E-COMMERCE PLATFORM API DEMO/temp-dotnet-home/
+E-COMMERCE PLATFORM API DEMO/.dotnet/
+E-COMMERCE PLATFORM API DEMO/.dotnet-cli/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

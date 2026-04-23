@@ -1,0 +1,8 @@
+# Ignore environment secrets
+.env
+Presentation/appsettings.Development.json
+WebAPI/appsettings.Development.json
+# Typical .NET artifacts
+bin/
+obj/
+

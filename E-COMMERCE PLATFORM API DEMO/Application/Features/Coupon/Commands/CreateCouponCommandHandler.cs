@@ -22,23 +22,23 @@ namespace Application.Features.Coupon.Commands
             var couponCode = await _couponRepository.GetCodeAsync(normalizeCode);
             if(couponCode != null)
             {
-                return Result<Guid>.Failure("code d� t?n t?i");
+                return Result<Guid>.Failure("code đã tồn tại");
             }
 
             //var discount = request.discountType.Trim().ToUpper();
             //if(discount != "PERCENTAGE" && discount != "FIXED_AMOUNT")
             //{
-            //    return Result<Guid>.Failure("Ki?u discount kh�ng h?p l?");
+            //    return Result<Guid>.Failure("Ki?u discount kh�ng h?p l?");
             //}
 
             if(request.value <= 0)
             {
-                return Result<Guid>.Failure("Value kh�ng du?c l� 0 ho?c �m");
+                return Result<Guid>.Failure("Value không được là 0 hoặc âm");
             }
 
             if(request.usageLimit <= 0)
             {
-                return Result<Guid>.Failure("H�y ghi s? l?n s? d?ng h?p l?");
+                return Result<Guid>.Failure("Hãy ghi số lượng sử dụng hợp lệ");
             }
 
             var coupon = new Domain.Entities.Coupon

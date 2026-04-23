@@ -1,5 +1,7 @@
-﻿using Application.Features.Order.Commands;
+﻿using Application.Common.Lalamove;
+using Application.Features.Order.Commands;
 using Application.Features.Order.Queries;
+using Application.Interfaces;
 using Azure.Core;
 using MediatR;
 using System.Security.Claims;
@@ -14,7 +16,9 @@ namespace WebAPI.Endpoints
 
             group.MapPost("/checkout", async (
                 ClaimsPrincipal user,
-                IMediator mediator) =>
+                CheckoutOrderRequest? request,
+                IMediator mediator,
+                IShipmentService shipmentService) =>
             {
                 var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -32,7 +36,34 @@ namespace WebAPI.Endpoints
                     return Results.BadRequest(new {Message = result.ErrorMessage});
                 }
 
-                return Results.Ok(new {Message = "Đặt hàng thành công", OrderId = result.Data});
+                if (request?.shipment == null)
+                {
+                    return Results.Ok(new
+                    {
+                        Message = "Đặt hàng thành công",
+                        OrderId = result.Data
+                    });
+                }
+
+                var shipmentResult = await shipmentService.CreateShipmentAsync(result.Data, request.shipment);
+                if (!shipmentResult.IsSuccess)
+                {
+                    return Results.Ok(new
+                    {
+                        Message = "Đặt hàng thành công nhưng tạo shipment thất bại",
+                        OrderId = result.Data,
+                        ShipmentCreated = false,
+                        ShipmentError = shipmentResult.ErrorMessage
+                    });
+                }
+
+                return Results.Ok(new
+                {
+                    Message = "Đặt hàng thành công và đã tạo shipment",
+                    OrderId = result.Data,
+                    ShipmentCreated = true,
+                    ShipmentId = shipmentResult.Data
+                });
             });
 
             group.MapGet("/", async (
@@ -72,6 +103,26 @@ namespace WebAPI.Endpoints
 
                 return Results.Ok(new { Message = "Order đã được cập nhật thành COMPLETED" });
             }).RequireAuthorization("AdminOnly");
+
+            group.MapPost("/{orderId:guid}/create-shipment", async (
+                                Guid orderId,
+                                CreateShipmentRequest request,
+                                IShipmentService shipmentService) =>
+            {
+                var result = await shipmentService.CreateShipmentAsync(orderId, request);
+
+                if (!result.IsSuccess)
+                {
+                    return Results.BadRequest(new { Message = result.ErrorMessage });
+                }
+
+                return Results.Ok(new
+                {
+                    Message = "Tạo shipment thành công",
+                    ShipmentId = result.Data
+                });
+            }).RequireAuthorization();
+
 
         }
     }

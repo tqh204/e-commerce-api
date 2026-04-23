@@ -26,3 +26,7 @@ namespace Application.Common.Behaviors
         }
     }
 }
+//This is the core of validation. When a request is sent to the mediator, it will first go through this pipeline behavior.
+//It will check if there are any validators for the request. If there are, it will validate the request using all the validators.
+//If any of the validators fail, it will throw a ValidationException with the details of the failures.
+//If all validators pass, it will call the next delegate in the pipeline, which is usually the request handler.

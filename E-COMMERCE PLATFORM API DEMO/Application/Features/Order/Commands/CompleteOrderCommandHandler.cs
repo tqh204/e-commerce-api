@@ -32,18 +32,18 @@ namespace Application.Features.Order.Commands
             var order = await _orderRepository.GetOrderIdAsync(request.orderId);
             if (order == null)
             {
-                return Result<bool>.Failure("Không tìm th?y order");
+                return Result<bool>.Failure("KhÃ´ng tÃ¬m tháº¥y order");
             }
 
             if (order.status == OrderStatus.Completed)
             {
-                return Result<bool>.Failure("Order dã hoàn t?t");
+                return Result<bool>.Failure("Order Ä‘Ã£ hoÃ n táº¥t");
             }
 
             var user = order.user ?? await _userRepository.GetUserByIdAsync(order.userId);
             if (user == null)
             {
-                return Result<bool>.Failure("Không tìm th?y user");
+                return Result<bool>.Failure("KhÃ´ng tÃ¬m tháº¥y user");
             }
             //Call the gRPC service to calculating loyalty points and update user ranks
             var loyaltyResult = await _loyaltyClient.CompleteOrderAsync(

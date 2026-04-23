@@ -28,3 +28,5 @@ public class ValidationExceptionMiddleware
         }
     }
 }
+//This is a middleware that catches any ValidationException thrown in the application and returns a standardized validation problem response to the client.
+//It groups the validation errors by property name and formats them in a way that can be easily consumed by the client.
