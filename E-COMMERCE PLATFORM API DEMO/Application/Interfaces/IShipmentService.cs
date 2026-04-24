@@ -11,9 +11,13 @@ namespace Application.Interfaces
             GetShippingFeeRequest request,
             CancellationToken cancellationToken = default);
 
-        Task<Result<Guid>> CreateShipmentAsync(
+        Task<Result<CreateShipmentResult>> CreateShipmentAsync(
             Guid orderId,
             CreateShipmentRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task<Result<LalamoveOrderDetailResult>> GetOrderDetailAsync(
+            string providerOrderId,
             CancellationToken cancellationToken = default);
 
         Task<Result<bool>> HandleWebhookAsync(

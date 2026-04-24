@@ -11,184 +11,25 @@ namespace Application.Features.Order.Commands
 {
     public class CheckoutCommandHandler : IRequestHandler<CheckoutCommand, Result<Guid>>
     {
-        private readonly IOrderRepository _orderRepository;
-        private readonly ICartRepository _cartRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ICouponRepository _couponRepository;
-        private readonly IPricingEngine _pricingEngine;
-        private readonly ILoyaltyClient _loyaltyClient;
-        private readonly IUserRepository _userRepository;
+        private readonly ICheckoutSnapshotService _checkoutSnapshotService;
+        private readonly ICheckoutExecutionService _checkoutExecutionService;
+
         public CheckoutCommandHandler(
-            IOrderRepository orderRepository,
-            ICartRepository cartRepository,
-            IUnitOfWork unitOfWork,
-            ICouponRepository couponRepository,
-            IPricingEngine pricingEngine,
-            ILoyaltyClient loyaltyClient,
-            IUserRepository userRepository)
+            ICheckoutSnapshotService checkoutSnapshotService,
+            ICheckoutExecutionService checkoutExecutionService)
         {
-            _orderRepository = orderRepository;
-            _cartRepository = cartRepository;
-            _unitOfWork = unitOfWork;
-            _couponRepository = couponRepository;
-            _pricingEngine = pricingEngine;
-            _loyaltyClient = loyaltyClient;
-            _userRepository = userRepository;
+            _checkoutSnapshotService = checkoutSnapshotService;
+            _checkoutExecutionService = checkoutExecutionService;
         }
 
         public async Task<Result<Guid>> Handle(CheckoutCommand request, CancellationToken cancellationToken)
         {
-            var cart = await _cartRepository.GetByUserIdAsync(request.userId);//Taking cart's user 
-            if(cart == null || !cart.items.Any())
+            var snapshotResult = await _checkoutSnapshotService.BuildAsync(request.userId, cancellationToken);
+            if (!snapshotResult.IsSuccess || snapshotResult.Data == null)
             {
-                return Result<Guid>.Failure("Không tìm thấy cart hoặc không có item trong cart");
+                return Result<Guid>.Failure(snapshotResult.ErrorMessage);
             }
-            await _unitOfWork.BeginTransactionAsync(cancellationToken);//Open transaction
-            try
-            {
-                foreach(var item in cart.items)//Starting a loop to check whether any item in cart rn?
-                {
-                    if(item.product == null)//Checking whether item in cart? if not => rollback
-                    {
-                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                        return Result<Guid>.Failure("Không tìm thấy sản phẩm trong giỏ hàng");
-                    }
-
-                    if(item.product.stockQuantity < item.quantity)//Checking if product stockquantity < item quantity => rollback
-                    {
-                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                        return Result<Guid>.Failure($"Sản phẩm {item.product.productName} không đủ hàng");
-                    }
-                }
-
-                Domain.Entities.Coupon? coupon = null;
-                decimal couponDiscount = 0;
-                var subTotal = cart.items.Sum(x => x.unitPrice * x.quantity);
-                var promotionResult = await _pricingEngine.CalculatePromotionAsync(cart.items.ToList(), DateTime.UtcNow, cancellationToken);
-                var promotionDiscount = promotionResult.discountAmount;
-                var afterPromotion = subTotal - promotionDiscount;
-                if (afterPromotion < 0)
-                {
-                    afterPromotion = 0;
-                }
-
-                if(cart.couponId.HasValue)
-                {
-                    coupon = await _couponRepository.GetCouponByIdAsync(cart.couponId.Value);
-                    if(coupon == null)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                        return Result<Guid>.Failure("Không tìm thấy code");
-                    }
-
-                    var now =DateTime.UtcNow;
-                    if(!coupon.isActive)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                        return Result<Guid>.Failure("Code chưa hoạt động");
-                    }
-
-                    if(coupon.startDate > now)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                        return Result<Guid>.Failure("Code hiện chưa khả dụng");
-                    }
-
-                    if(coupon.endDate < now)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                        return Result<Guid>.Failure("Code hiện không khả dụng");
-                    }
-
-                    if(coupon.usedCount >= coupon.usageLimit)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                        return Result<Guid>.Failure("Code đã hết lượt sử dụng");
-                    }
-
-                    if(afterPromotion < coupon.minOrderValue)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                        return Result<Guid>.Failure("Chưa đủ điều kiện để sử dụng");
-                    }
-
-                    couponDiscount = coupon.discountType switch
-                    {
-                        DiscountType.Percentage => afterPromotion * (coupon.value / 100m),
-                        DiscountType.FixedAmount => coupon.value,
-                        _ => 0
-                    };
-                    couponDiscount = Math.Max(0, Math.Min(couponDiscount, afterPromotion));
-                }
-
-                var afterCoupon = afterPromotion - couponDiscount;//after checking a lot of rules to avoid the problem, we will calculate the price after discount of coupon, and then we will check the loyalty point of user to calculate the rank discount of user
-                if (afterCoupon < 0)
-                {
-                    afterCoupon = 0;//If the price after discount of coupon < 0, we will set it to 0 to avoid the problem of negative price
-                }
-
-                var user = await _userRepository.GetUserByIdAsync(request.userId);//Taking the userId at the present to check the loyalty point of user to calculate the rank discount of user
-                if (user == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                    return Result<Guid>.Failure("Không tìm thấy user");
-                }
-                //Call the gRPC service first to review the price after calculating
-                var loyaltyPreview = await _loyaltyClient.PreviewBenefitsAsync(request.userId, user.loyaltyPoint, afterCoupon, cancellationToken);
-                var rankDiscount = loyaltyPreview.RankDiscountAmount;//Receive the result of rank percentage. 
-                var finalTotal = afterCoupon - rankDiscount;
-
-                if(finalTotal < 0)
-                {
-                    finalTotal = 0;
-                }
-                var order = new Domain.Entities.Order//If pass, create a new order
-                {
-                    orderId = Guid.NewGuid(), //Create an id for order by Guid
-                    userId = request.userId,//take the userId from request to make sure that the system is creating an order for the right user
-                    totalAmount = finalTotal,
-                   //totalAmount = cart.items.Sum(x => x.unitPrice * x.quantity),//take the price of item * quantity of item 
-                    status = OrderStatus.Pending,
-                    createdAt = DateTime.UtcNow,
-                    updatedAt = null
-                };
-
-                foreach(var item in cart.items)//start a loop to check each item in cart item
-                {
-                    item.product!.stockQuantity -= item.quantity;//Caculating the rest stockQuantity of product
-                    item.product.updatedAt = DateTime.UtcNow;
-
-                    var orderItem = new OrderItem//create new item of order to prepare to save in DB
-                    {
-                        orderItemId = Guid.NewGuid(),
-                        orderId = order.orderId,
-                        productId = item.productId,
-                        productName = item.product.productName,
-                        quantity = item.quantity,
-                        unitPrice = item.unitPrice,
-                        lineTotal = item.unitPrice * item.quantity,
-                    };
-                    order.items.Add(orderItem);//add items into Order
-                }
-
-                if(coupon != null)
-                {
-                    coupon.usedCount += 1;
-                    coupon.updatedAt = DateTime.UtcNow;
-                    _couponRepository.Update(coupon);
-                }
-                await _orderRepository.AddAsync(order);
-                _cartRepository.RemoveCart(cart);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-                await _unitOfWork.CommitTransactionAsync(cancellationToken);
-                return Result<Guid>.Success(order.orderId);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                throw;
-            }
-
+            return await _checkoutExecutionService.ExecuteAsync(request.userId, snapshotResult.Data, cancellationToken);
         }
     }
 }

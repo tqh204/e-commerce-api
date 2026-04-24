@@ -31,7 +31,7 @@ namespace Application.Common.Lalamove.Service
             _logger = logger;
         }
 
-        public async Task<Result<Guid>> CreateShipmentAsync(
+        public async Task<Result<CreateShipmentResult>> CreateShipmentAsync(
              Guid orderId,
              CreateShipmentRequest request,
              CancellationToken cancellationToken = default)
@@ -39,13 +39,13 @@ namespace Application.Common.Lalamove.Service
             var order = await _orderRepository.GetOrderIdAsync(orderId);
             if (order == null)
             {
-                return Result<Guid>.Failure("Không tìm thấy order");
+                return Result<CreateShipmentResult>.Failure("Không tìm thấy order");
             }
 
             var existingShipment = await _shipmentRepository.GetByOrderIdAsync(orderId);
             if (existingShipment != null && !string.IsNullOrWhiteSpace(existingShipment.providerOrderId))
             {
-                return Result<Guid>.Failure("Order này đã có shipment");
+                return Result<CreateShipmentResult>.Failure("Order này đã có shipment");
             }
 
             try
@@ -53,12 +53,12 @@ namespace Application.Common.Lalamove.Service
                 var quotation = await _shipmentQuotationRepository.GetByQuotationIdAsync(request.quotationId);
                 if (quotation == null)
                 {
-                    return Result<Guid>.Failure("Không tìm thấy quotation đã chọn");
+                    return Result<CreateShipmentResult>.Failure("Không tìm thấy quotation đã chọn");
                 }
 
                 if (quotation.expiresAt.HasValue && quotation.expiresAt.Value <= DateTime.Now)
                 {
-                    return Result<Guid>.Failure("Quotation đã hết hạn, vui lòng tính phí lại");
+                    return Result<CreateShipmentResult>.Failure("Quotation đã hết hạn, vui lòng tính phí lại");
                 }
 
                 var providerOrder = await _lalamoveClient.CreateOrderAsync(
@@ -109,11 +109,14 @@ namespace Application.Common.Lalamove.Service
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
-                return Result<Guid>.Success(shipment.shipmentId);
+                return Result<CreateShipmentResult>.Success(new CreateShipmentResult(
+                    shipment.shipmentId,
+                    shipment.providerOrderId,
+                    providerOrder.status));
             }
             catch (Exception ex)
             {
-                return Result<Guid>.Failure($"Không thể tạo shipment: {ex.Message}");
+                return Result<CreateShipmentResult>.Failure($"Không thể tạo shipment: {ex.Message}");
             }
         }
 
@@ -161,6 +164,26 @@ namespace Application.Common.Lalamove.Service
             catch (Exception ex)
             {
                 return Result<ShippingFeeResponse>.Failure($"Không thể lấy phí vận chuyển: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<LalamoveOrderDetailResult>> GetOrderDetailAsync(
+            string providerOrderId,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(providerOrderId))
+            {
+                return Result<LalamoveOrderDetailResult>.Failure("Provider order id is required");
+            }
+
+            try
+            {
+                var result = await _lalamoveClient.GetOrderDetailAsync(providerOrderId, cancellationToken);
+                return Result<LalamoveOrderDetailResult>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                return Result<LalamoveOrderDetailResult>.Failure($"Không thể lấy order detail: {ex.Message}");
             }
         }
 

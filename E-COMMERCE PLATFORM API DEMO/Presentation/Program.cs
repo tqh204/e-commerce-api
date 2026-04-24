@@ -1,6 +1,8 @@
 using Application.Common.Behaviors;
 using Application.Common.Lalamove;
 using Application.Common.Lalamove.Service;
+using Application.Common.PayOS;
+using Application.Common.PayOS.Service;
 using Application.Common.Pricing;
 using Application.Features.Auth.Commands.Login;
 using Application.Features.Auth.Commands.Register;
@@ -43,6 +45,11 @@ builder.Services.AddScoped<IPricingEngine, PricingEngine>();
 builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
 builder.Services.AddScoped<IShipmentQuotationRepository, ShipmentQuotationRepository>();
 builder.Services.AddScoped<IShipmentService, ShipmentService>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<ICheckoutSnapshotService, CheckoutSnapshotService>();
+builder.Services.AddScoped<ICheckoutExecutionService, CheckoutExecutionService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPayOSClient, PayOSClientService>();
     
 builder.Services.AddMediatR(cfg =>
 {
@@ -63,6 +70,8 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.Configure<LalamoveOptions>(
     builder.Configuration.GetSection("Lalamove"));
+builder.Services.Configure<PayOSSettings>(
+    builder.Configuration.GetSection("PayOS"));
 
 builder.Services.AddHttpClient<ILalamoveClient, LalamoveClient>((sp, client) =>
 {
@@ -95,4 +104,5 @@ app.MapReviewEndpoints();
 app.MapVariantEndpoints();
 app.MapPromotionEndpoints();
 app.MapShippingEndpoints();
+app.MapPaymentEndpoints();
 app.Run();

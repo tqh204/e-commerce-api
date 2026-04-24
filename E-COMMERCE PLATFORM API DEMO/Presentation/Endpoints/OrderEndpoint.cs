@@ -1,8 +1,8 @@
-﻿using Application.Common.Lalamove;
+using Application.Common.Lalamove;
+using Application.Common.PayOS;
 using Application.Features.Order.Commands;
 using Application.Features.Order.Queries;
 using Application.Interfaces;
-using Azure.Core;
 using MediatR;
 using System.Security.Claims;
 
@@ -17,23 +17,56 @@ namespace WebAPI.Endpoints
             group.MapPost("/checkout", async (
                 ClaimsPrincipal user,
                 CheckoutOrderRequest? request,
-                IMediator mediator,
-                IShipmentService shipmentService) =>
+                IPaymentService paymentService) =>
             {
                 var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if(string.IsNullOrEmpty(userIdValue))
+                if (string.IsNullOrEmpty(userIdValue))
                 {
                     return Results.Unauthorized();
                 }
 
                 var userId = Guid.Parse(userIdValue);
+                var paymentResult = await paymentService.CreatePaymentLinkAsync(
+                    userId,
+                    new CreatePayOSPaymentRequest(
+                        request?.description,
+                        request?.returnUrl ?? string.Empty,
+                        request?.cancelUrl ?? string.Empty,
+                        request?.shipment));
 
+                if (!paymentResult.IsSuccess)
+                {
+                    return Results.BadRequest(new { Message = paymentResult.ErrorMessage });
+                }
+
+                return Results.Ok(new
+                {
+                    Message = "Tạo link thanh toán PayOS thành công",
+                    PaymentId = paymentResult.Data!.paymentId,
+                    OrderCode = paymentResult.Data.orderCode,
+                    CheckoutUrl = paymentResult.Data.checkoutUrl,
+                    Status = paymentResult.Data.status
+                });
+            });
+
+            group.MapPost("/checkout/manual", async (
+                ClaimsPrincipal user,
+                CheckoutOrderRequest? request,
+                IMediator mediator,
+                IShipmentService shipmentService) =>
+            {
+                var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdValue))
+                {
+                    return Results.Unauthorized();
+                }
+
+                var userId = Guid.Parse(userIdValue);
                 var result = await mediator.Send(new CheckoutCommand(userId));
 
                 if (!result.IsSuccess)
                 {
-                    return Results.BadRequest(new {Message = result.ErrorMessage});
+                    return Results.BadRequest(new { Message = result.ErrorMessage });
                 }
 
                 if (request?.shipment == null)
@@ -62,7 +95,9 @@ namespace WebAPI.Endpoints
                     Message = "Đặt hàng thành công và đã tạo shipment",
                     OrderId = result.Data,
                     ShipmentCreated = true,
-                    ShipmentId = shipmentResult.Data
+                    ShipmentId = shipmentResult.Data.shipmentId,
+                    ProviderOrderId = shipmentResult.Data.providerOrderId,
+                    ProviderStatus = shipmentResult.Data.providerStatus
                 });
             });
 
@@ -71,29 +106,24 @@ namespace WebAPI.Endpoints
                 IMediator mediator) =>
             {
                 var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if(string.IsNullOrEmpty(userIdValue))
+                if (string.IsNullOrEmpty(userIdValue))
                 {
                     return Results.Unauthorized();
                 }
 
                 var userId = Guid.Parse(userIdValue);
-
                 var result = await mediator.Send(new GetOrderQuery(userId));
                 return Results.Ok(result);
             });
 
             group.MapPut("/{orderId:guid}/complete", async (
-                        ClaimsPrincipal user,
-                        Guid orderId,
-                        IMediator mediator) =>
+                ClaimsPrincipal user,
+                Guid orderId,
+                IMediator mediator) =>
             {
                 var userIdValue = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                var userId = Guid.Parse(userIdValue);
-                var command = new CompleteOrderCommand(
-                    userId,
-                    orderId);
+                var userId = Guid.Parse(userIdValue!);
+                var command = new CompleteOrderCommand(userId, orderId);
                 var result = await mediator.Send(command);
 
                 if (!result.IsSuccess)
@@ -105,9 +135,9 @@ namespace WebAPI.Endpoints
             }).RequireAuthorization("AdminOnly");
 
             group.MapPost("/{orderId:guid}/create-shipment", async (
-                                Guid orderId,
-                                CreateShipmentRequest request,
-                                IShipmentService shipmentService) =>
+                Guid orderId,
+                CreateShipmentRequest request,
+                IShipmentService shipmentService) =>
             {
                 var result = await shipmentService.CreateShipmentAsync(orderId, request);
 
@@ -119,11 +149,11 @@ namespace WebAPI.Endpoints
                 return Results.Ok(new
                 {
                     Message = "Tạo shipment thành công",
-                    ShipmentId = result.Data
+                    ShipmentId = result.Data.shipmentId,
+                    ProviderOrderId = result.Data.providerOrderId,
+                    ProviderStatus = result.Data.providerStatus
                 });
             }).RequireAuthorization();
-
-
         }
     }
 }

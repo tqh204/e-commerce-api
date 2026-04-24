@@ -24,6 +24,7 @@ namespace Infrastructure.Data
         public DbSet<PromotionRule> PromotionRules { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<ShipmentQuotation> ShipmentQuotations { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -354,6 +355,70 @@ namespace Infrastructure.Data
 
                 entity.Property(q => q.packageHeight)
                       .HasColumnType("decimal(18,2)");
+            });
+
+            modelBuilder.Entity<Payment>(entity =>
+            {
+                entity.HasKey(p => p.paymentId);
+
+                entity.HasIndex(p => p.orderCode)
+                      .IsUnique();
+
+                entity.Property(p => p.amount)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(p => p.description)
+                      .IsRequired()
+                      .HasMaxLength(255);
+
+                entity.Property(p => p.status)
+                      .HasConversion<string>()
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(p => p.providerStatus)
+                      .HasMaxLength(50);
+
+                entity.Property(p => p.paymentLinkId)
+                      .HasMaxLength(100);
+
+                entity.Property(p => p.providerReference)
+                      .HasMaxLength(200);
+
+                entity.Property(p => p.checkoutUrl)
+                      .HasMaxLength(1000);
+
+                entity.Property(p => p.returnUrl)
+                      .IsRequired()
+                      .HasMaxLength(1000);
+
+                entity.Property(p => p.cancelUrl)
+                      .IsRequired()
+                      .HasMaxLength(1000);
+
+                entity.Property(p => p.cartSnapshotJson)
+                      .IsRequired();
+
+                entity.Property(p => p.selectedShipmentJson)
+                      .IsRequired(false);
+
+                entity.Property(p => p.failureReason)
+                      .HasMaxLength(2000);
+
+                entity.HasOne(p => p.user)
+                      .WithMany()
+                      .HasForeignKey(p => p.userId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.linkedOrder)
+                      .WithMany()
+                      .HasForeignKey(p => p.linkedOrderId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.linkedShipment)
+                      .WithMany()
+                      .HasForeignKey(p => p.linkedShipmentId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
 

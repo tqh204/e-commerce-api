@@ -28,6 +28,20 @@ namespace WebAPI.Endpoints
                 return Results.Ok(result.Data);
             });
 
+            group.MapGet("/lalamove/orders/{providerOrderId}", async (
+                string providerOrderId,
+                IShipmentService shipmentService) =>
+            {
+                var result = await shipmentService.GetOrderDetailAsync(providerOrderId);
+
+                if (!result.IsSuccess)
+                {
+                    return Results.BadRequest(new { Message = result.ErrorMessage });
+                }
+
+                return Results.Ok(result.Data);
+            });
+
             app.MapPost("/api/v1/shipping/lalamove/webhook", async (
                 HttpRequest request,
                 IShipmentService shipmentService) =>
